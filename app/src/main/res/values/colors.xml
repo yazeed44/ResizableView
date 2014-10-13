@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="ball_line">#000000</color>
+    <color name="rectangle_frame">#55DB1255</color>
+
+</resources>
