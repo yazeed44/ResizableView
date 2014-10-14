@@ -10,9 +10,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 
@@ -20,11 +19,11 @@ import java.util.ArrayList;
  * Created by yazeed44 on 10/11/14.
  *
  */
-public class ResizeFrameView extends View {
+public class ResizeFrameView extends ImageView {
 
     public Point[] points = new Point[4];
 
-    public Rect resizeRectangle = new Rect();
+    public Rect resizeRect = new Rect();
     /**
      * point1 and point 3 are of same group and same as point 2 and point4
      */
@@ -35,6 +34,7 @@ public class ResizeFrameView extends View {
     // variable to know what ball is being dragged
     public Paint paint;
    public Canvas canvas;
+    private boolean draggingFrame = false;
     private String className = getClass().getSimpleName() + "  ";
     private int touchX , touchY;
 
@@ -61,6 +61,7 @@ public class ResizeFrameView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
+        super.onDraw(canvas);
         if (points[3] == null) { //point4 null when user did not touch and move on screen.
             return;
         }
@@ -98,10 +99,28 @@ public class ResizeFrameView extends View {
             right = right < points[i].x ? points[i].x:right;
             bottom = bottom < points[i].y ? points[i].y:bottom;
         }
-        resizeRectangle.left = left;
-        resizeRectangle.top = top;
-        resizeRectangle.bottom = bottom;
-        resizeRectangle.right = right;
+        resizeRect.left = left;
+        resizeRect.top = top;
+        resizeRect.bottom = bottom;
+        resizeRect.right = right;
+
+
+        if (draggingFrame) {
+            resizeRect.offsetTo(touchX - resizeRect.width() / 2, touchY - resizeRect.height() / 2);
+
+            colorballs.get(0).setX(resizeRect.left);
+            colorballs.get(0).setY(resizeRect.top);
+
+            colorballs.get(1).setX(resizeRect.left);
+            colorballs.get(1).setY(resizeRect.bottom);
+
+            colorballs.get(2).setX(resizeRect.right);
+            colorballs.get(2).setY(resizeRect.bottom);
+
+            colorballs.get(3).setX(resizeRect.right);
+            colorballs.get(3).setY(resizeRect.top);
+
+        }
     }
 
 
@@ -111,10 +130,10 @@ public class ResizeFrameView extends View {
         paint.setColor(getResources().getColor(R.color.ball_line));
         paint.setStrokeWidth(2);
         canvas.drawRect(
-                resizeRectangle.left + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRectangle.top + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRectangle.right + colorballs.get(2).getWidthOfBall() / 2,
-                resizeRectangle.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
+                resizeRect.left + colorballs.get(0).getWidthOfBall() / 2,
+                resizeRect.top + colorballs.get(0).getWidthOfBall() / 2,
+                resizeRect.right + colorballs.get(2).getWidthOfBall() / 2,
+                resizeRect.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
     }
 
     //Draw the rectangle frame (Filling it)
@@ -125,10 +144,10 @@ public class ResizeFrameView extends View {
         paint.setColor(getResources().getColor(R.color.rectangle_frame));
         paint.setStrokeWidth(0);
         canvas.drawRect(
-                resizeRectangle.left + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRectangle.top + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRectangle.right + colorballs.get(2).getWidthOfBall() / 2,
-                resizeRectangle.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
+                resizeRect.left + colorballs.get(0).getWidthOfBall() / 2,
+                resizeRect.top + colorballs.get(0).getWidthOfBall() / 2,
+                resizeRect.right + colorballs.get(2).getWidthOfBall() / 2,
+                resizeRect.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
     }
 
     //Draw resize balls (Corners) and their ID
@@ -161,9 +180,7 @@ public class ResizeFrameView extends View {
                 // a ball
                 if (points[0] == null) {
                     initializeBalls();
-                } /*else if (hasFrameTouched()) {
-                    onDraggingFrame();
-                }*/
+                }
 
                 else {
                     //get TouchedBall
@@ -213,11 +230,9 @@ public class ResizeFrameView extends View {
 
     private ColorBall getTouchedBall() {
         ColorBall touchedBall = null;
-        Log.d(getClass().getSimpleName() + "  touches", "X = " + touchX + "  ,  Y =  " + touchY);
 
         int range;
         for (ColorBall ball : colorballs) {
-            Log.d(getClass().getSimpleName() + "  ball " + (ball.getID() + 1) + "  XY", "X  =  " + ball.getX() + "    ,  Y  =  " + ball.getY());
 
             range = ball.getWidthOfBall();
             final boolean insideXRange = touchX + range > ball.getX() && touchX - range < ball.getX();
@@ -226,7 +241,7 @@ public class ResizeFrameView extends View {
             final boolean insideYRange = touchY + range > ball.getY() && touchY - range < ball.getY();
 
             if (insideXRange && insideYRange) {
-                //   Log.d(getClass().getSimpleName() + " getTouchedBall" , "We got ball !! it's " + (ball.getID() + 1) + " ball !!");
+
                 touchedBall = ball;
             }
 
@@ -239,10 +254,12 @@ public class ResizeFrameView extends View {
         onDraggingBall(touchX, touchY);
     }
 
-    private void onDraggingBall(final int x, final int y) {
+    private void onDraggingBall(final int newX, final int newY) {
+
+        draggingFrame = false;
         // move the balls the same as the finger
-        colorballs.get(balID).setX(x);
-        colorballs.get(balID).setY(y);
+        colorballs.get(balID).setX(newX);
+        colorballs.get(balID).setY(newY);
 
         paint.setColor(Color.CYAN);
         if (groupId == 1) {
@@ -262,31 +279,10 @@ public class ResizeFrameView extends View {
 
     private void onDraggingFrame() {
 
+        draggingFrame = true;
 
-        for (int i = 0; i < colorballs.size(); i++) {
-            final ColorBall ball = colorballs.get(i);
-            final int ballX = ball.getX();
-            final int ballY = ball.getY();
-
-
-            Log.d(className + "  ball " + (i + 1) + "  XY ", "X  =  " + ballX + "   ,  Y  =  " + ballY);
-
-            final double xFactor = ((double) touchX / (double) ballX);
-            final int newX = (int) (ballX * xFactor);
-            ball.setX(newX);
-
-            final double yFactor = ((double) touchY / (double) ballY);
-            final int newY = (int) (ballY * yFactor);
-
-            Log.d(className + "Factors", "X   =  " + xFactor + "   ,  Y  =  " + yFactor);
-            Log.d(className + "new XY", "X =  " + newX + "  ,  Y  =  " + newY);
-            ball.setY(newY);
-            Log.d(className, "Move to new Ball");
-
-        }
 
         invalidate();
-
 
     }
 
