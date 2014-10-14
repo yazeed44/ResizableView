@@ -25,7 +25,6 @@ public class ResizeFrameView extends View {
     public Point[] points = new Point[4];
 
     public Rect resizeRectangle = new Rect();
-
     /**
      * point1 and point 3 are of same group and same as point 2 and point4
      */
@@ -36,8 +35,7 @@ public class ResizeFrameView extends View {
     // variable to know what ball is being dragged
     public Paint paint;
    public Canvas canvas;
-
-
+    private String className = getClass().getSimpleName() + "  ";
     private int touchX , touchY;
 
     public ResizeFrameView(Context context) {
@@ -163,68 +161,29 @@ public class ResizeFrameView extends View {
                 // a ball
                 if (points[0] == null) {
                     initializeBalls();
-                } else if (hasFrameTouched()) {
+                } /*else if (hasFrameTouched()) {
                     onDraggingFrame();
-                }
+                }*/
 
                 else {
-                    //resize rectangle
+                    //get TouchedBall
                     balID = -1;
                     groupId = -1;
-                    for (int i = colorballs.size()-1; i>=0; i--) {
-                        final ColorBall ball = colorballs.get(i);
-                        // check if inside the bounds of the ball (circle)
-                        // get the center for the ball
-                        int centerX = ball.getX() + ball.getWidthOfBall();
-                        int centerY = ball.getY() + ball.getHeightOfBall();
-                        paint.setColor(Color.CYAN);
-                        // calculate the radius from the touch to the center of the
-                        // ball
-                        double radCircle = Math
-                                .sqrt((double) (((centerX - touchX) * (centerX - touchX)) + (centerY - touchY)
-                                        * (centerY - touchY)));
 
-                        if (radCircle < ball.getWidthOfBall()) {
+                    final ColorBall touchedBall = getTouchedBall();
 
-                            initializeTouchedBall(ball);
-                            break;
-                        }
-
-                        invalidate();
-
+                    if (touchedBall != null) {
+                        initializeTouchedBall(touchedBall);
                     }
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE: // touch drag with the ball
 
-
-                Log.d(getClass().getSimpleName() + " ACTION_MOVE", "Started dragging");
-
-                if (hasFrameTouched() && balID == -1) {
+                if (balID > -1) {
+                    onDraggingBall();
+                } else if (hasFrameTouched()) {
                     onDraggingFrame();
-                    break;
-                } else if (balID > -1) {
-                    // move the balls the same as the finger
-
-
-                    colorballs.get(balID).setX(touchX);
-                    colorballs.get(balID).setY(touchY);
-
-                    paint.setColor(Color.CYAN);
-                    if (groupId == 1) {
-                        colorballs.get(1).setX(colorballs.get(0).getX());
-                        colorballs.get(1).setY(colorballs.get(2).getY());
-                        colorballs.get(3).setX(colorballs.get(2).getX());
-                        colorballs.get(3).setY(colorballs.get(0).getY());
-                    } else {
-                        colorballs.get(0).setX(colorballs.get(1).getX());
-                        colorballs.get(0).setY(colorballs.get(3).getY());
-                        colorballs.get(2).setX(colorballs.get(3).getX());
-                        colorballs.get(2).setY(colorballs.get(1).getY());
-                    }
-
-                    invalidate();
                 }
 
 
@@ -252,17 +211,83 @@ public class ResizeFrameView extends View {
         invalidate();
     }
 
+    private ColorBall getTouchedBall() {
+        ColorBall touchedBall = null;
+        Log.d(getClass().getSimpleName() + "  touches", "X = " + touchX + "  ,  Y =  " + touchY);
+
+        int range;
+        for (ColorBall ball : colorballs) {
+            Log.d(getClass().getSimpleName() + "  ball " + (ball.getID() + 1) + "  XY", "X  =  " + ball.getX() + "    ,  Y  =  " + ball.getY());
+
+            range = ball.getWidthOfBall();
+            final boolean insideXRange = touchX + range > ball.getX() && touchX - range < ball.getX();
+
+            range = ball.getHeightOfBall();
+            final boolean insideYRange = touchY + range > ball.getY() && touchY - range < ball.getY();
+
+            if (insideXRange && insideYRange) {
+                //   Log.d(getClass().getSimpleName() + " getTouchedBall" , "We got ball !! it's " + (ball.getID() + 1) + " ball !!");
+                touchedBall = ball;
+            }
+
+        }
+
+        return touchedBall;
+    }
+
+    private void onDraggingBall() {
+        onDraggingBall(touchX, touchY);
+    }
+
+    private void onDraggingBall(final int x, final int y) {
+        // move the balls the same as the finger
+        colorballs.get(balID).setX(x);
+        colorballs.get(balID).setY(y);
+
+        paint.setColor(Color.CYAN);
+        if (groupId == 1) {
+            colorballs.get(1).setX(colorballs.get(0).getX());
+            colorballs.get(1).setY(colorballs.get(2).getY());
+            colorballs.get(3).setX(colorballs.get(2).getX());
+            colorballs.get(3).setY(colorballs.get(0).getY());
+        } else {
+            colorballs.get(0).setX(colorballs.get(1).getX());
+            colorballs.get(0).setY(colorballs.get(3).getY());
+            colorballs.get(2).setX(colorballs.get(3).getX());
+            colorballs.get(2).setY(colorballs.get(1).getY());
+        }
+
+        invalidate();
+    }
 
     private void onDraggingFrame() {
 
-      /*  for (int i = 0 ; i < points.length;i++){
-            final int newX = touchX + points[i].x;
-            final int newY = touchY + points[i].y;
-            points[i].y = newY;
-            points[i].x = newX;
+
+        for (int i = 0; i < colorballs.size(); i++) {
+            final ColorBall ball = colorballs.get(i);
+            final int ballX = ball.getX();
+            final int ballY = ball.getY();
+
+
+            Log.d(className + "  ball " + (i + 1) + "  XY ", "X  =  " + ballX + "   ,  Y  =  " + ballY);
+
+            final double xFactor = ((double) touchX / (double) ballX);
+            final int newX = (int) (ballX * xFactor);
+            ball.setX(newX);
+
+            final double yFactor = ((double) touchY / (double) ballY);
+            final int newY = (int) (ballY * yFactor);
+
+            Log.d(className + "Factors", "X   =  " + xFactor + "   ,  Y  =  " + yFactor);
+            Log.d(className + "new XY", "X =  " + newX + "  ,  Y  =  " + newY);
+            ball.setY(newY);
+            Log.d(className, "Move to new Ball");
+
         }
 
-        invalidate();*/
+        invalidate();
+
+
     }
 
     private void initializeBalls() {
@@ -307,7 +332,7 @@ public class ResizeFrameView extends View {
     private ColorBall getBall(final int ballId){
         final ColorBall ball = colorballs.get(ballId-1);
 
-        Log.d(getClass().getSimpleName() + "  getBall" , "Ball " + ballId + "  is being called !!");
+        //    Log.d(getClass().getSimpleName() + "  getBall" , "Ball " + ballId + "  is being called !!");
         return ball;
     }
 
@@ -328,9 +353,9 @@ public class ResizeFrameView extends View {
         final int circleFourX = getBallX(4);
         final int circleTwoY = getBallY(2);
 
-        Log.d(getClass().getSimpleName() +"  touches" , "X =  " + touchX + "   ,  Y  =  " + touchY);
-        Log.d(getClass().getSimpleName() + "circles X" , " 1  =  " +  circleOneX  +  "  , 4  =  " + circleFourX );
-        Log.d(getClass().getSimpleName() + "circles Y" ,  "1  =  " + circleOneY + "    ,   2  =  " + circleTwoY);
+        //   Log.d(getClass().getSimpleName() +"  touches" , "X =  " + touchX + "   ,  Y  =  " + touchY);
+        // Log.d(getClass().getSimpleName() + "circles X" , " 1  =  " +  circleOneX  +  "  , 4  =  " + circleFourX );
+        // Log.d(getClass().getSimpleName() + "circles Y" ,  "1  =  " + circleOneY + "    ,   2  =  " + circleTwoY);
 
 
         boolean insideX = circleOneX <= touchX   && circleFourX >= touchX ;
@@ -341,8 +366,7 @@ public class ResizeFrameView extends View {
         }
 
 
-
-        Log.d(getClass().getSimpleName() +"  insideX ?"  , ""+ insideX);
+//        Log.d(getClass().getSimpleName() +"  insideX ?"  , ""+ insideX);
 
         boolean insideY = circleOneY <= touchY   && circleTwoY >= touchY  ;
 
@@ -351,29 +375,20 @@ public class ResizeFrameView extends View {
             insideY = circleTwoY <= touchY  && circleOneY >= touchY ;
         }
 
-        Log.d(getClass().getSimpleName() +"  insideY ?"  , ""+ insideY);
+//        Log.d(getClass().getSimpleName() +"  insideY ?"  , ""+ insideY);
 
 
         final boolean hasFrameTouched = insideX && insideY && !isAnyBallBeingTouched() ;
-        Log.d(getClass().getSimpleName() +  "  hasFrameTouched" , "FrameHasTouched = " + hasFrameTouched);
+        //   Log.d(getClass().getSimpleName() +  "  hasFrameTouched" , "FrameHasTouched = " + hasFrameTouched);
         return hasFrameTouched;
     }
 
 
-    private ColorBall getTouchedBall(){
-        ColorBall touchedBall = null;
-        for(ColorBall ball : colorballs){
-            if (touchX == ball.getX() && touchY == ball.getY()){
-                touchedBall = ball;
-            }
-        }
 
-        return touchedBall;
-    }
 
     private boolean isAnyBallBeingTouched(){
-        final boolean isAnyBallBeingTouched = getTouchedBall() != null;
-        Log.d(getClass().getSimpleName() + " is Any Ball being touched ? " , isAnyBallBeingTouched + "");
+        final boolean isAnyBallBeingTouched = balID != -1;
+        // Log.d(getClass().getSimpleName() + " is Any Ball being touched ? " , isAnyBallBeingTouched + "");
         return isAnyBallBeingTouched;
     }
 }
