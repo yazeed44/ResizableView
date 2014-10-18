@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -19,41 +20,53 @@ import java.util.ArrayList;
  * Created by yazeed44 on 10/11/14.
  *
  */
-public class ResizeFrameView extends ImageView {
+public abstract class ResizeFrameView extends ImageView {
 
-    public Point[] points = new Point[4];
+    public PointF[] points = new PointF[4];
 
     public Rect resizeRect = new Rect();
     /**
      * point1 and point 3 are of same group and same as point 2 and point4
      */
     public int groupId = -1;
-    public ArrayList<ColorBall> colorballs = new ArrayList<ColorBall>();
+    public ArrayList<ResizeBall> resizeBalls = new ArrayList<ResizeBall>();
     // array that holds the balls
-    public int balID = 0;
+    public int ballId = 0;
     // variable to know what ball is being dragged
     public Paint paint;
    public Canvas canvas;
-    private boolean draggingFrame = false;
+    public boolean draggingFrame = false;
+    private Bitmap resizeBall;
     private String className = getClass().getSimpleName() + "  ";
     private int touchX , touchY;
 
     public ResizeFrameView(Context context) {
         super(context);
-        paint = new Paint();
-        setFocusable(true); // necessary for getting the touch events
-        canvas = new Canvas();
+        initializeMembers();
     }
 
     public ResizeFrameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        initializeMembers();
     }
 
     public ResizeFrameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        initializeMembers();
+    }
+
+    private void initializeMembers() {
         paint = new Paint();
-        setFocusable(true); // necessary for getting the touch events
+        setFocusable(false); // necessary for getting the touch events
         canvas = new Canvas();
+        initializeCircleBitmap();
+    }
+
+    private void initializeCircleBitmap() {
+
+        final Drawable resizeBallDrawable = getResources().getDrawable(R.drawable.resize_circle);
+
+        resizeBall = ((BitmapDrawable) resizeBallDrawable).getBitmap();
     }
 
 
@@ -62,9 +75,11 @@ public class ResizeFrameView extends ImageView {
     protected void onDraw(Canvas canvas) {
 
         super.onDraw(canvas);
-        if (points[3] == null) { //point4 null when user did not touch and move on screen.
-            return;
+
+        if (resizeBalls.isEmpty()) {
+            initializeBalls();
         }
+
 
         initializeResizeRect();
 
@@ -83,12 +98,59 @@ public class ResizeFrameView extends ImageView {
 
         drawBalls(canvas);
 
+        onResizing(resizeRect);
+
 
     }
 
+    private void initializeBalls() {
+
+        //Reset
+        resizeBalls.clear();
+        ResizeBall.count = 0;
+
+
+        final Rect viewRect = new Rect();
+        getDrawingRect(viewRect);
+
+        final int bw = getBallWidth();
+        final int bh = getBallHeight();
+
+        final int offset = 0;
+
+        //initialize rectangle.
+        points[0] = new PointF();
+        points[0].y = getTop() + offset;
+        points[0].x = getLeft();
+
+        points[1] = new PointF();
+        points[1].y = getBottom() + offset;
+        points[1].x = getLeft();
+
+        points[2] = new PointF();
+        points[2].y = getBottom() + offset;
+        points[2].x = getRight();
+
+        points[3] = new PointF();
+        points[3].y = getTop() + offset;
+        points[3].x = getRight();
+
+        ballId = 2;
+        groupId = 1;
+        // declare each ball with the ColorBall class
+
+
+        for (PointF pt : points) {
+            resizeBalls.add(new ResizeBall(pt));
+        }
+
+        initializeResizeRect();
+    }
+
+
     private void initializeResizeRect() {
 
-        int left, top, right, bottom;
+        float left, top, right, bottom;
         left = points[0].x;
         top = points[0].y;
         right = points[0].x;
@@ -99,26 +161,15 @@ public class ResizeFrameView extends ImageView {
             right = right < points[i].x ? points[i].x:right;
             bottom = bottom < points[i].y ? points[i].y:bottom;
         }
-        resizeRect.left = left;
-        resizeRect.top = top;
-        resizeRect.bottom = bottom;
-        resizeRect.right = right;
+        resizeRect.left = (int) left;
+        resizeRect.top = (int) top;
+        resizeRect.bottom = (int) bottom;
+        resizeRect.right = (int) right;
 
 
         if (draggingFrame) {
-            resizeRect.offsetTo(touchX - resizeRect.width() / 2, touchY - resizeRect.height() / 2);
 
-            colorballs.get(0).setX(resizeRect.left);
-            colorballs.get(0).setY(resizeRect.top);
-
-            colorballs.get(1).setX(resizeRect.left);
-            colorballs.get(1).setY(resizeRect.bottom);
-
-            colorballs.get(2).setX(resizeRect.right);
-            colorballs.get(2).setY(resizeRect.bottom);
-
-            colorballs.get(3).setX(resizeRect.right);
-            colorballs.get(3).setY(resizeRect.top);
+            onDraggingRect(new Point(touchX, touchY));
 
         }
     }
@@ -130,10 +181,10 @@ public class ResizeFrameView extends ImageView {
         paint.setColor(getResources().getColor(R.color.ball_line));
         paint.setStrokeWidth(2);
         canvas.drawRect(
-                resizeRect.left + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRect.top + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRect.right + colorballs.get(2).getWidthOfBall() / 2,
-                resizeRect.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
+                resizeRect.left + getBallWidth() / 2,
+                resizeRect.top + getBallWidth() / 2,
+                resizeRect.right + getBallWidth() / 2,
+                resizeRect.bottom + getBallWidth() / 2, paint);
     }
 
     //Draw the rectangle frame (Filling it)
@@ -144,10 +195,10 @@ public class ResizeFrameView extends ImageView {
         paint.setColor(getResources().getColor(R.color.rectangle_frame));
         paint.setStrokeWidth(0);
         canvas.drawRect(
-                resizeRect.left + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRect.top + colorballs.get(0).getWidthOfBall() / 2,
-                resizeRect.right + colorballs.get(2).getWidthOfBall() / 2,
-                resizeRect.bottom + colorballs.get(2).getWidthOfBall() / 2, paint);
+                resizeRect.left + getBallWidth() / 2,
+                resizeRect.top + getBallWidth() / 2,
+                resizeRect.right + getBallWidth() / 2,
+                resizeRect.bottom + getBallWidth() / 2, paint);
     }
 
     //Draw resize balls (Corners) and their ID
@@ -156,9 +207,9 @@ public class ResizeFrameView extends ImageView {
         paint.setColor(Color.BLUE);
         paint.setTextSize(18);
         paint.setStrokeWidth(0);
-        for (int i =0; i < colorballs.size(); i ++) {
-            ColorBall ball = colorballs.get(i);
-            canvas.drawBitmap(ball.getBitmap(), ball.getX(), ball.getY(),
+        for (int i = 0; i < resizeBalls.size(); i++) {
+            ResizeBall ball = resizeBalls.get(i);
+            canvas.drawBitmap(resizeBall, ball.getX(), ball.getY(),
                     paint);
 
             canvas.drawText("" + (i+1), ball.getX(), ball.getY(), paint);
@@ -177,30 +228,27 @@ public class ResizeFrameView extends ImageView {
         switch (eventAction) {
 
             case MotionEvent.ACTION_DOWN: // touch down so check if the finger is on
-                // a ball
-                if (points[0] == null) {
-                    initializeBalls();
-                }
 
-                else {
-                    //get TouchedBall
-                    balID = -1;
+
+                //get TouchedBall
+                ballId = -1;
                     groupId = -1;
 
-                    final ColorBall touchedBall = getTouchedBall();
+                final ResizeBall touchedBall = getTouchedBall();
 
                     if (touchedBall != null) {
                         initializeTouchedBall(touchedBall);
                     }
-                }
+
                 break;
 
             case MotionEvent.ACTION_MOVE: // touch drag with the ball
 
-                if (balID > -1) {
-                    onDraggingBall();
+                if (ballId > -1) {
+                    onDraggingBall(new Point(touchX, touchY));
                 } else if (hasFrameTouched()) {
-                    onDraggingFrame();
+                    draggingFrame = true;
+                    invalidate();
                 }
 
 
@@ -208,7 +256,7 @@ public class ResizeFrameView extends ImageView {
 
             case MotionEvent.ACTION_UP:
                 // touch drop - just do things here after dropping
-
+                draggingFrame = false;
 
                 break;
         }
@@ -218,9 +266,10 @@ public class ResizeFrameView extends ImageView {
 
     }
 
-    private void initializeTouchedBall(final ColorBall ball) {
-        balID = ball.getID();
-        if (balID == 1 || balID == 3) {
+    private void initializeTouchedBall(final ResizeBall ball) {
+        draggingFrame = false;
+        ballId = ball.getID();
+        if (ballId == 1 || ballId == 3) {
             groupId = 2;
         } else {
             groupId = 1;
@@ -228,16 +277,16 @@ public class ResizeFrameView extends ImageView {
         invalidate();
     }
 
-    private ColorBall getTouchedBall() {
-        ColorBall touchedBall = null;
+    private ResizeBall getTouchedBall() {
+        ResizeBall touchedBall = null;
 
         int range;
-        for (ColorBall ball : colorballs) {
+        for (ResizeBall ball : resizeBalls) {
 
-            range = ball.getWidthOfBall();
+            range = getBallWidth();
             final boolean insideXRange = touchX + range > ball.getX() && touchX - range < ball.getX();
 
-            range = ball.getHeightOfBall();
+            range = getBallHeight();
             final boolean insideYRange = touchY + range > ball.getY() && touchY - range < ball.getY();
 
             if (insideXRange && insideYRange) {
@@ -250,141 +299,72 @@ public class ResizeFrameView extends ImageView {
         return touchedBall;
     }
 
-    private void onDraggingBall() {
-        onDraggingBall(touchX, touchY);
-    }
 
-    private void onDraggingBall(final int newX, final int newY) {
+    //if ball two is above ball one that means the frame is inverted
+    public boolean isFrameInverted() {
+        final int ballOneY = resizeBalls.get(0).getY();
+        final int ballTwoY = resizeBalls.get(1).getY();
 
-        draggingFrame = false;
-        // move the balls the same as the finger
-        colorballs.get(balID).setX(newX);
-        colorballs.get(balID).setY(newY);
-
-        paint.setColor(Color.CYAN);
-        if (groupId == 1) {
-            colorballs.get(1).setX(colorballs.get(0).getX());
-            colorballs.get(1).setY(colorballs.get(2).getY());
-            colorballs.get(3).setX(colorballs.get(2).getX());
-            colorballs.get(3).setY(colorballs.get(0).getY());
-        } else {
-            colorballs.get(0).setX(colorballs.get(1).getX());
-            colorballs.get(0).setY(colorballs.get(3).getY());
-            colorballs.get(2).setX(colorballs.get(3).getX());
-            colorballs.get(2).setY(colorballs.get(1).getY());
-        }
-
-        invalidate();
-    }
-
-    private void onDraggingFrame() {
-
-        draggingFrame = true;
-
-
-        invalidate();
-
-    }
-
-    private void initializeBalls() {
-
-        //Reset
-        colorballs.clear();
-        ColorBall.count = 0;
-
-        //initialize rectangle.
-        points[0] = new Point();
-        points[0].x = touchX;
-        points[0].y = touchY;
-
-        points[1] = new Point();
-        points[1].x = touchX;
-        points[1].y = touchY + 30;
-
-        points[2] = new Point();
-        points[2].x = touchX + 30;
-        points[2].y = touchY + 30;
-
-        points[3] = new Point();
-        points[3].x = touchX +30;
-        points[3].y = touchY;
-
-        balID = 2;
-        groupId = 1;
-        // declare each ball with the ColorBall class
-
-        final Drawable resizeCircle = getResources().getDrawable(R.drawable.resize_circle);
-
-        final Bitmap resizeCircleBitmap = ((BitmapDrawable)resizeCircle).getBitmap();
-
-        for (Point pt : points) {
-            colorballs.add(new ColorBall(resizeCircleBitmap, pt));
-        }
-
-        invalidate();
+        return ballTwoY > ballOneY;
     }
 
 
-    private ColorBall getBall(final int ballId){
-        final ColorBall ball = colorballs.get(ballId-1);
+    private boolean hasFrameTouched() {
+        return resizeRect.contains(touchX, touchY);
 
-        //    Log.d(getClass().getSimpleName() + "  getBall" , "Ball " + ballId + "  is being called !!");
-        return ball;
     }
 
-    private int getBallX(final int ballId){
-        return getBall(ballId).getX();
-    }
-
-    private int getBallY(final int ballId){
-        return getBall(ballId).getY();
-    }
-
-
-    private boolean hasFrameTouched(){
-
-
-        final int circleOneX = getBallX(1);
-        final int circleOneY = getBallY(1);
-        final int circleFourX = getBallX(4);
-        final int circleTwoY = getBallY(2);
-
-        //   Log.d(getClass().getSimpleName() +"  touches" , "X =  " + touchX + "   ,  Y  =  " + touchY);
-        // Log.d(getClass().getSimpleName() + "circles X" , " 1  =  " +  circleOneX  +  "  , 4  =  " + circleFourX );
-        // Log.d(getClass().getSimpleName() + "circles Y" ,  "1  =  " + circleOneY + "    ,   2  =  " + circleTwoY);
-
-
-        boolean insideX = circleOneX <= touchX   && circleFourX >= touchX ;
-
-        if (circleFourX < circleOneX){
-            //reverse
-            insideX = circleFourX <= touchX  && circleOneX >= touchX ;
-        }
-
-
-//        Log.d(getClass().getSimpleName() +"  insideX ?"  , ""+ insideX);
-
-        boolean insideY = circleOneY <= touchY   && circleTwoY >= touchY  ;
-
-        if (circleTwoY < circleOneY){
-            //reverse
-            insideY = circleTwoY <= touchY  && circleOneY >= touchY ;
-        }
-
-//        Log.d(getClass().getSimpleName() +"  insideY ?"  , ""+ insideY);
-
-
-        final boolean hasFrameTouched = insideX && insideY && !isAnyBallBeingTouched() ;
-        //   Log.d(getClass().getSimpleName() +  "  hasFrameTouched" , "FrameHasTouched = " + hasFrameTouched);
-        return hasFrameTouched;
-    }
-
-
-
-
-    private boolean isAnyBallBeingTouched(){
-        final boolean isAnyBallBeingTouched = balID != -1;
+    private boolean isAnyBallBeingTouched() {
+        final boolean isAnyBallBeingTouched = ballId != -1;
         // Log.d(getClass().getSimpleName() + " is Any Ball being touched ? " , isAnyBallBeingTouched + "");
         return isAnyBallBeingTouched;
     }
+
+
+    private int getBallWidth() {
+        return resizeBall.getWidth();
+    }
+
+    private int getBallHeight() {
+        return resizeBall.getHeight();
+    }
+
+    public PointF getTopLeftCorner() {
+        float src[] = new float[8];
+        float[] dst = new float[]{0, 0, getWidth(), 0, 0, getHeight(), getWidth(), getHeight()};
+        getMatrix().mapPoints(src, dst);
+        final PointF cornerPoint = new PointF(getX() + src[0], getY() + src[1]);
+        return cornerPoint;
+    }
+
+    public PointF getTopRightCorner() {
+        float src[] = new float[8];
+        float[] dst = new float[]{0, 0, getWidth(), 0, 0, getHeight(), getWidth(), getHeight()};
+        getMatrix().mapPoints(src, dst);
+        final PointF cornerPoint = new PointF(getX() + src[2], getY() + src[3]);
+        return cornerPoint;
+    }
+
+    public PointF getBottomLeftCorner() {
+        float src[] = new float[8];
+        float[] dst = new float[]{0, 0, getWidth(), 0, 0, getHeight(), getWidth(), getHeight()};
+        getMatrix().mapPoints(src, dst);
+        final PointF cornerPoint = new PointF(getX() + src[4], getY() + src[5]);
+        return cornerPoint;
+    }
+
+    public PointF getBottomRightCorner() {
+        float src[] = new float[8];
+        float[] dst = new float[]{0, 0, getWidth(), 0, 0, getHeight(), getWidth(), getHeight()};
+        getMatrix().mapPoints(src, dst);
+        final PointF cornerPoint = new PointF(getX() + src[6], getY() + src[7]);
+        return cornerPoint;
+    }
+
+
+    public abstract void onDraggingBall(final Point touches);
+
+    public abstract void onDraggingRect(final Point touches);
+
+    public abstract void onResizing(final Rect viewRect);
 }

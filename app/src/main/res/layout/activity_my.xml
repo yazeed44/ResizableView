@@ -8,13 +8,46 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MyActivity">
 
-    <yazeed44.net.resizeableviewlibary.ResizeableView
+    <FrameLayout
         android:id="@+id/resizeableView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#ffffff">
 
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/photo_resizeable" />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="5dp"
+            android:src="#000000"
+
+            />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:src="@drawable/resize_circle" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:src="@drawable/resize_circle" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:src="@drawable/resize_circle" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:src="@drawable/resize_circle"
+
+            />
+
+    </FrameLayout>
 
 </RelativeLayout>
