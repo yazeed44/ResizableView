@@ -1,4 +1,4 @@
-package net.yazeed44.resizeableviewlibary.views;
+package net.yazeed44.resizableviewlibrary.views;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,6 +6,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import net.yazeed44.resizeableviewlibary.R;
+import net.yazeed44.resizableviewlibrary.R;
 
 import java.util.ArrayList;
 
@@ -25,7 +26,6 @@ public abstract class ResizeFrameView extends FrameLayout {
 
     public int[] positions = new int[4];
 
-    public Rect resizeRect = new Rect();
     /**
      * point1 and point 3 are of same group and same as point 2 and point4
      */
@@ -37,6 +37,7 @@ public abstract class ResizeFrameView extends FrameLayout {
 
     public boolean draggingFrame = false;
     public ImageView resizableImage;
+    public String className = getClass().getSimpleName() + "   ";
     private Bitmap resizeBall;
 
     public ResizeFrameView(final Context context, final ImageView resizableImage) {
@@ -58,6 +59,8 @@ public abstract class ResizeFrameView extends FrameLayout {
 
         setBackgroundResource(R.color.ball_line);
 
+        setFocusable(true);
+
 
     }
 
@@ -76,6 +79,11 @@ public abstract class ResizeFrameView extends FrameLayout {
 
 
     private void initializeBalls() {
+
+
+        for (int index = 0; index < resizeBalls.size(); index++) {
+            removeView(resizeBalls.get(index));
+        }
 
         //Reset
         resizeBalls.clear();
@@ -119,11 +127,40 @@ public abstract class ResizeFrameView extends FrameLayout {
             ballView.setOnTouchListener(new OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
-                    initializeBallId(view);
-                    onDraggingBall(new PointF(motionEvent.getX(), motionEvent.getY()));
+
+                    final int eventAction = motionEvent.getAction();
+
+                    switch (eventAction) {
+
+                        case MotionEvent.ACTION_DOWN: {
+                            //First touch
+                            initializeBallId(view);
+                            break;
+                        }
 
 
-                    return false;
+                        case MotionEvent.ACTION_MOVE: {
+                            //Moving the finger on screen
+
+                            onDraggingBall(new PointF(motionEvent.getX(), motionEvent.getY()));
+
+                            break;
+                        }
+
+
+                        case MotionEvent.ACTION_UP: {
+                            //Finger off the screen
+                            break;
+                        }
+
+                    }
+
+
+                    initializeBalls(); //Temp
+                    invalidate();
+
+
+                    return true;
                 }
             });
 
@@ -142,6 +179,8 @@ public abstract class ResizeFrameView extends FrameLayout {
         } else {
             groupId = 1;
         }
+
+        Log.d(className + "initializeBall", "The new ball is " + (ballId + 1) + " ball !!");
 
     }
 

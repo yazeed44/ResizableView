@@ -1,4 +1,4 @@
-package net.yazeed44.resizeableviewlibary.views;
+package net.yazeed44.resizableviewlibrary.views;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,7 +6,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
-import net.yazeed44.resizeableviewlibary.R;
+import net.yazeed44.resizableviewlibrary.R;
 
 
 /**
@@ -31,6 +31,7 @@ public class ResizeBallView extends ImageView {
         if (count > 4) {
             throw new IllegalStateException("There's should be four balls only !!" + "\n" + id);
         }
+
 
         this.id = count++;
     }
