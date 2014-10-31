@@ -17,8 +17,6 @@ public class ResizeBallView extends ImageView {
     public static int count = 0;
     private int id;
 
-    private String className = getClass().getSimpleName() + "   ";
-
     public ResizeBallView(final Context context) {
         super(context);
         initializeCircle();
@@ -47,7 +45,7 @@ public class ResizeBallView extends ImageView {
 
     }
 
-    public int getId() {
+    public int getBallId() {
         return this.id;
     }
 

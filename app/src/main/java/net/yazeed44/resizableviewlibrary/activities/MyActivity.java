@@ -23,9 +23,9 @@ public class MyActivity extends Activity {
 
 
         final ResizableView view = new ResizableView(getBaseContext(), resizableImage);
-        addContentView(view, new LinearLayout.LayoutParams(700, 700));
-        view.setTranslationX(300);
-        view.setTranslationY(800);
+        addContentView(view, new LinearLayout.LayoutParams(400, 400));
+        view.setTranslationX(0);
+        view.setTranslationY(0);
 
 
     }

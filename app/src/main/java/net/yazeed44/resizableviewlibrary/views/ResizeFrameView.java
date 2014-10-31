@@ -24,25 +24,21 @@ import java.util.ArrayList;
  */
 public abstract class ResizeFrameView extends FrameLayout {
 
-    public int[] positions = new int[4];
-
-    /**
-     * point1 and point 3 are of same group and same as point 2 and point4
-     */
+    private final static String FRAME_TAG = "frameTag";
+    public int[] positions = new int[4]; // Balls Positions on the frame
     public int groupId = -1;
     public ArrayList<ResizeBallView> resizeBalls = new ArrayList<ResizeBallView>();
     // array that holds the balls
     public int ballId = 0;
-    // variable to know what ball is being dragged
-
-    public boolean draggingFrame = false;
     public ImageView resizableImage;
     public String className = getClass().getSimpleName() + "   ";
     private Bitmap resizeBall;
 
+
     public ResizeFrameView(final Context context, final ImageView resizableImage) {
         super(context);
         initializeFrame(resizableImage);
+
 
     }
 
@@ -56,7 +52,6 @@ public abstract class ResizeFrameView extends FrameLayout {
 
         initializeMembers();
         initializeBalls();
-
         setBackgroundResource(R.color.ball_line);
 
         setFocusable(true);
@@ -65,9 +60,48 @@ public abstract class ResizeFrameView extends FrameLayout {
     }
 
 
+    private void initializePositions(boolean hasBallsInitialized) {
+
+        final boolean frameInverted = isFrameInverted(hasBallsInitialized);
+
+        //initialize positions for circles.
+
+        if (!frameInverted) {
+            positions[0] = Gravity.LEFT | Gravity.TOP; // Circle 1
+
+            positions[1] = Gravity.LEFT | Gravity.BOTTOM; // Circle 2
+
+            positions[2] = Gravity.RIGHT | Gravity.BOTTOM; // Circle 3
+
+            positions[3] = Gravity.RIGHT | Gravity.TOP; // Circle 4
+        } else {
+            positions[0] = Gravity.LEFT | Gravity.BOTTOM;
+
+            positions[1] = Gravity.LEFT | Gravity.TOP;
+
+            positions[2] = Gravity.RIGHT | Gravity.TOP;
+
+            positions[3] = Gravity.RIGHT | Gravity.BOTTOM;
+        }
+    }
+
+    private boolean isFrameInverted(boolean hasBallsInitialized) {
+
+        if (hasBallsInitialized) {
+            final ResizeBallView ballOne = resizeBalls.get(0), ballTwo = resizeBalls.get(1);
+
+            return ballTwo.getY() > ballOne.getY();
+        } else {
+            return false;
+        }
+
+    }
+
+
     private void initializeMembers() {
         setFocusable(true); // necessary for getting the touch events
         initializeCircleBitmap();
+        initializePositions(false);
     }
 
     private void initializeCircleBitmap() {
@@ -80,29 +114,33 @@ public abstract class ResizeFrameView extends FrameLayout {
 
     private void initializeBalls() {
 
+        resetBalls();
 
+
+        initializePositions(false);
+
+        reattachBalls();
+
+        setBallsListener();
+
+
+    }
+
+
+    private void resetBalls() {
         for (int index = 0; index < resizeBalls.size(); index++) {
             removeView(resizeBalls.get(index));
         }
 
-        //Reset
+
         resizeBalls.clear();
         ResizeBallView.count = 0;
 
-
-        //initialize positions for circles.
-        positions[0] = Gravity.LEFT | Gravity.TOP; // Circle 1
-
-        positions[1] = Gravity.LEFT | Gravity.BOTTOM; // Circle 2
-
-        positions[2] = Gravity.RIGHT | Gravity.BOTTOM; // Circle 3
-
-        positions[3] = Gravity.RIGHT | Gravity.TOP; // Circle 4
-
         ballId = 2;
         groupId = 1;
+    }
 
-
+    private void reattachBalls() {
         for (int position : positions) {
             final LayoutParams params = new LayoutParams(getBallWidth(), getBallHeight(), position);
 
@@ -112,11 +150,6 @@ public abstract class ResizeFrameView extends FrameLayout {
 
             resizeBalls.add(resizeBallView);
         }
-
-
-        setBallsListener();
-
-
     }
 
     private void setBallsListener() {
@@ -142,7 +175,8 @@ public abstract class ResizeFrameView extends FrameLayout {
                         case MotionEvent.ACTION_MOVE: {
                             //Moving the finger on screen
 
-                            onDraggingBall(new PointF(motionEvent.getX(), motionEvent.getY()));
+                            final Rect afterDragRect = onDraggingBall(new PointF(motionEvent.getX(), motionEvent.getY()));
+                            onResizing(afterDragRect);
 
                             break;
                         }
@@ -150,13 +184,15 @@ public abstract class ResizeFrameView extends FrameLayout {
 
                         case MotionEvent.ACTION_UP: {
                             //Finger off the screen
+
                             break;
                         }
 
                     }
 
 
-                    initializeBalls(); //Temp
+                    //rePostBalls();
+                    initializeBalls();
                     invalidate();
 
 
@@ -168,10 +204,18 @@ public abstract class ResizeFrameView extends FrameLayout {
 
     }
 
+    private void rePostBalls() {
+        initializePositions(true);
+        resetBalls();
+        reattachBalls();
+        setBallsListener();
+
+    }
+
     private void initializeBallId(final View view) {
         final ResizeBallView ballView = (ResizeBallView) view;
 
-        ballId = ballView.getId();
+        ballId = ballView.getBallId();
 
 
         if (ballId == 1 || ballId == 3) {
@@ -194,7 +238,7 @@ public abstract class ResizeFrameView extends FrameLayout {
     }
 
 
-    public abstract void onDraggingBall(final PointF touches);
+    public abstract Rect onDraggingBall(final PointF touches);
 
     public abstract void onResizing(final Rect viewRect);
 }
