@@ -41,7 +41,6 @@ public class ResizableView extends ResizeFrameView implements View.OnDragListene
 
 
         this.setLayoutParams(params);
-
         Log.d(getClass().getSimpleName() + "  onResizing", "new Height  =  " + params.height + "   ,  new Width  =  " + params.width);
 
     }
@@ -50,22 +49,22 @@ public class ResizableView extends ResizeFrameView implements View.OnDragListene
         final PointF[] ballsXY = new PointF[4];
 
         // move the balls the same as the finger
-        resizeBalls.get(ballId).setX(touches.x);
-        resizeBalls.get(ballId).setY(touches.y);
+        resizeBalls.get(ballId).setLeft((int)touches.x);
+        resizeBalls.get(ballId).setTop((int)touches.y);
 
-        float newBallOneX = resizeBalls.get(0).getX();
-        float newBallOneY = resizeBalls.get(0).getY();
-
-
-        float newBallTwoX = resizeBalls.get(1).getX();
-        float newBallTwoY = resizeBalls.get(1).getY();
+        float newBallOneX = resizeBalls.get(0).getLeft();
+        float newBallOneY = resizeBalls.get(0).getTop();
 
 
-        float newBallThreeX = resizeBalls.get(2).getX();
-        float newBallThreeY = resizeBalls.get(2).getY();
+        float newBallTwoX = resizeBalls.get(1).getLeft();
+        float newBallTwoY = resizeBalls.get(1).getTop();
 
-        float newBallFourX = resizeBalls.get(3).getX();
-        float newBallFourY = resizeBalls.get(3).getY();
+
+        float newBallThreeX = resizeBalls.get(2).getLeft();
+        float newBallThreeY = resizeBalls.get(2).getTop();
+
+        float newBallFourX = resizeBalls.get(3).getLeft();
+        float newBallFourY = resizeBalls.get(3).getTop();
 
 
         if (groupId == 1) {
@@ -89,18 +88,15 @@ public class ResizableView extends ResizeFrameView implements View.OnDragListene
 
         for (int i = 0; i < resizeBalls.size(); i++) {
             final PointF xy = ballsXY[i];
-            resizeBalls.get(i).setX(xy.x);
-            resizeBalls.get(i).setY(xy.y);
+            resizeBalls.get(i).setLeft((int)xy.x);
+            resizeBalls.get(i).setTop((int)xy.y);
         }
 
-        final Rect afterDragRect = getRect(ballsXY);
-
-        return afterDragRect;
-
+       return createRect(ballsXY);
 
     }
 
-    private Rect getRect(final PointF[] points) {
+    private Rect createRect(final PointF[] points) {
         final Rect resizeRect = new Rect();
         float left, top, right, bottom;
         left = points[0].x;
@@ -156,7 +152,6 @@ public class ResizableView extends ResizeFrameView implements View.OnDragListene
                 this,      // no need to use local data
                 0          // flags (not currently used, set to 0)
         );
-
 
     }
 

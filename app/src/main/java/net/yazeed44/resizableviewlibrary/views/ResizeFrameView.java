@@ -27,12 +27,13 @@ public abstract class ResizeFrameView extends FrameLayout {
     private final static String FRAME_TAG = "frameTag";
     public int[] positions = new int[4]; // Balls Positions on the frame
     public int groupId = -1;
-    public ArrayList<ResizeBallView> resizeBalls = new ArrayList<ResizeBallView>();
+    public ArrayList<ResizeBallView> resizeBalls = new ArrayList<>();
     // array that holds the balls
     public int ballId = 0;
     public ImageView resizableImage;
     public String className = getClass().getSimpleName() + "   ";
     private Bitmap resizeBall;
+    public boolean isDraggingFrame;
 
 
     public ResizeFrameView(final Context context, final ImageView resizableImage) {
@@ -60,7 +61,7 @@ public abstract class ResizeFrameView extends FrameLayout {
     }
 
 
-    private void initializePositions(boolean hasBallsInitialized) {
+    private void initPositions(boolean hasBallsInitialized) {
 
         final boolean frameInverted = isFrameInverted(hasBallsInitialized);
 
@@ -101,7 +102,7 @@ public abstract class ResizeFrameView extends FrameLayout {
     private void initializeMembers() {
         setFocusable(true); // necessary for getting the touch events
         initializeCircleBitmap();
-        initializePositions(false);
+        initPositions(false);
     }
 
     private void initializeCircleBitmap() {
@@ -117,7 +118,7 @@ public abstract class ResizeFrameView extends FrameLayout {
         resetBalls();
 
 
-        initializePositions(false);
+        initPositions(false);
 
         reattachBalls();
 
@@ -167,7 +168,8 @@ public abstract class ResizeFrameView extends FrameLayout {
 
                         case MotionEvent.ACTION_DOWN: {
                             //First touch
-                            initializeBallId(view);
+                            initBallId(view);
+                            isDraggingFrame = false;
                             break;
                         }
 
@@ -177,7 +179,7 @@ public abstract class ResizeFrameView extends FrameLayout {
 
                             final Rect afterDragRect = onDraggingBall(new PointF(motionEvent.getX(), motionEvent.getY()));
                             onResizing(afterDragRect);
-
+                            isDraggingFrame = false;
                             break;
                         }
 
@@ -192,8 +194,9 @@ public abstract class ResizeFrameView extends FrameLayout {
 
 
                     //rePostBalls();
-                    initializeBalls();
+                   // initializeBalls();
                     invalidate();
+
 
 
                     return true;
@@ -205,17 +208,17 @@ public abstract class ResizeFrameView extends FrameLayout {
     }
 
     private void rePostBalls() {
-        initializePositions(true);
+        initPositions(true);
         resetBalls();
         reattachBalls();
         setBallsListener();
 
     }
 
-    private void initializeBallId(final View view) {
-        final ResizeBallView ballView = (ResizeBallView) view;
+    private void initBallId(final View view) {
 
-        ballId = ballView.getBallId();
+
+        ballId = ((ResizeBallView)view).getBallId();
 
 
         if (ballId == 1 || ballId == 3) {
