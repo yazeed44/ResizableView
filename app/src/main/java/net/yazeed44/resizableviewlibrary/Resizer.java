@@ -9,50 +9,54 @@ import android.widget.FrameLayout;
 
 class Resizer {
 
-
-    public static final double RESIZE_FACTOR = 1.34;
-
+    public static final String TAG = "Resizer";
     private int mCounter = 0;
     private FrameLayout.LayoutParams mNewParams;
-    private ResizableImageView resizableView;
+    private ResizableViewLayout mResizableView;
 
-    public Resizer(final ResizableImageView resizableView) {
+    public Resizer(final ResizableViewLayout resizableView) {
         this.mNewParams = (FrameLayout.LayoutParams) resizableView.getLayoutParams();
-        this.resizableView = resizableView;
+        this.mResizableView = resizableView;
     }
 
     public Resizer width(final int width) {
         mNewParams.width = width;
+        Log.d(TAG, "new width  " + mNewParams.width);
         return this;
     }
 
     public Resizer height(final int height) {
         mNewParams.height = height;
+        Log.d(TAG, "new height  " + height);
         return this;
     }
 
     public Resizer topMargin(final int top) {
         mNewParams.topMargin = top;
+        Log.d(TAG, "new top  " + top);
         return this;
     }
 
     public Resizer leftMargin(final int left) {
         mNewParams.leftMargin = left;
+        Log.d(TAG, "new left  " + left);
         return this;
     }
 
     public Resizer rightMargin(final int right) {
         mNewParams.rightMargin = right;
+        Log.d(TAG, "new right  " + right);
         return this;
     }
 
     public Resizer bottomMargin(final int bottom) {
         mNewParams.bottomMargin = bottom;
+        Log.d(TAG, "new bottom  " + bottom);
         return this;
     }
 
     private Point getScreenSize() {
-        final Display display = ((WindowManager) resizableView.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        final Display display = ((WindowManager) mResizableView.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         final Point size = new Point();
         display.getSize(size);
 
@@ -69,8 +73,11 @@ class Resizer {
 
         mCounter++;
 
-        final int maxWidth = getMaxWidth();
-        final int maxHeight = getMaxHeight();
+        final int shapeWidth = mResizableView.getResources().getDimensionPixelSize(R.dimen.shape_width);
+        final int shapeHeight = mResizableView.getResources().getDimensionPixelSize(R.dimen.shape_height);
+
+        final int maxWidth = getMaxWidth() - shapeWidth;
+        final int maxHeight = getMaxHeight() - shapeHeight;
 
         if (mNewParams.width > maxWidth) {
             mNewParams.width = maxWidth;
@@ -81,28 +88,21 @@ class Resizer {
         }
 
 
-        //  mNewParams.width /= RESIZE_FACTOR;
-
-
-        Log.d("resize", "new Right margin   " + mNewParams.rightMargin);
-        Log.d("resize", "new left margin    " + mNewParams.leftMargin);
-        Log.d("resize", "new width  " + mNewParams.width);
-
-        resizableView.setLayoutParams(mNewParams);
+        mResizableView.setLayoutParams(mNewParams);
 
     }
 
     private int getMaxWidth() {
         final Point screenSize = getScreenSize();
 
-        return screenSize.x - 45;
+        return screenSize.x;
 
     }
 
     private int getMaxHeight() {
         final Point screenSize = getScreenSize();
 
-        return screenSize.y - 45;
+        return screenSize.y;
     }
 
 }

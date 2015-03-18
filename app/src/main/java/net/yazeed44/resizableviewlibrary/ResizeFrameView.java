@@ -3,13 +3,15 @@ package net.yazeed44.resizableviewlibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
@@ -19,13 +21,10 @@ import java.util.ArrayList;
  */
 abstract class ResizeFrameView extends FrameLayout {
 
-
-    int groupId = -1;
-    ArrayList<ResizeShapeView> resizeShapes = new ArrayList<>();
+    protected ArrayList<ResizeShapeView> mResizeShapes = new ArrayList<>();
     // array that holds the balls
-    int shapeId = 0;
-    ImageView resizableImageView;
-    String className = getClass().getSimpleName() + "   ";
+    protected int mShapeId = 0;
+    protected View mResizableView;
     private Bitmap mResizeShapeBitmap;
 
     public ResizeFrameView(final Context context) {
@@ -41,22 +40,37 @@ abstract class ResizeFrameView extends FrameLayout {
     }
 
 
-    public void setImage(final ImageView resizableImage) {
-        initializeFrame(resizableImage);
+    public void setResizableView(final View resizableView) {
+        initFrame(resizableView);
     }
 
-    private void initializeFrame(final ImageView resizableImage) {
-        this.resizableImageView = resizableImage;
-
-
-        final LayoutParams imageParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER);
-        addView(resizableImageView, imageParams);
+    private void initFrame(final View resizableView) {
+        this.mResizableView = resizableView;
+        mResizableView.setOnTouchListener(createDragListener());
 
         initShapeBitmap();
+        createNestedLayout(resizableView);
 
 
-        //  setFocusable(true);
+    }
 
+    private void createNestedLayout(final View resizableView) {
+
+
+        final LinearLayout nestedFrameLayout = new LinearLayout(getContext());
+        nestedFrameLayout.setOrientation(LinearLayout.VERTICAL);
+        nestedFrameLayout.setBackgroundColor(Color.GRAY);
+        final LayoutParams nestedFrameLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER);
+        final int horizontalMargin = mResizeShapeBitmap.getWidth() / 2;
+        final int verticalMargin = mResizeShapeBitmap.getHeight() / 2;
+        nestedFrameLayoutParams.setMargins(horizontalMargin, verticalMargin, horizontalMargin, verticalMargin);
+        addView(nestedFrameLayout, nestedFrameLayoutParams);
+
+
+        final LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        resizableView.setLayoutParams(imageParams);
+
+        nestedFrameLayout.addView(resizableView, imageParams);
 
     }
 
@@ -84,13 +98,11 @@ abstract class ResizeFrameView extends FrameLayout {
 
     private void initShapes() {
 
-        if (!resizeShapes.isEmpty()) {
+        if (!mResizeShapes.isEmpty()) {
             return; // No need to initialize
         }
 
         attachShapes();
-
-        createShapesListener();
 
 
     }
@@ -114,10 +126,11 @@ abstract class ResizeFrameView extends FrameLayout {
             resizeShapeView.setImageBitmap(mResizeShapeBitmap);
             resizeShapeView.setOnTouchListener(createShapesListener());
             resizeShapeView.setFocusable(true);
+            resizeShapeView.setClickable(true);
             addView(resizeShapeView, params);
 
 
-            resizeShapes.add(resizeShapeView);
+            mResizeShapes.add(resizeShapeView);
         }
     }
 
@@ -130,4 +143,5 @@ abstract class ResizeFrameView extends FrameLayout {
 
     public abstract OnTouchListener createShapesListener();
 
+    public abstract OnTouchListener createDragListener();
 }

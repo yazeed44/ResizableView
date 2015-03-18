@@ -15,14 +15,12 @@ public class MyActivity extends Activity {
 
         final ImageView resizableImage = new ImageView(this);
         resizableImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        final int padding = 10;
-        resizableImage.setPadding(padding, padding, padding, padding);
+        //  resizableImage.setClickable(false);
+        //  resizableImage.setFocusable(false);
         resizableImage.setImageDrawable(getResources().getDrawable(R.drawable.photo_resizeable));
 
-
-        final ResizableImageView view = new ResizableImageView(getBaseContext());
-        view.setImage(resizableImage);
-
+        final ResizableViewLayout view = new ResizableViewLayout(getBaseContext());
+        view.setResizableView(resizableImage);
         addContentView(view, new LinearLayout.LayoutParams(400, 400));
         view.setTranslationX(0);
         view.setTranslationY(0);

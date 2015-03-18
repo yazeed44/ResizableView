@@ -6,8 +6,8 @@
 
 
     <size
-        android:width="15dp"
-        android:height="15dp" />
+        android:width="@dimen/shape_width"
+        android:height="@dimen/shape_height" />
 
 
 </shape>
