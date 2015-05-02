@@ -3,7 +3,6 @@ package net.yazeed44.resizableviewlibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -11,6 +10,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ abstract class ResizeFrameView extends FrameLayout {
     // array that holds the balls
     protected int mShapeId = 0;
     protected View mResizableView;
+    protected ImageView mStretchView;
     private Bitmap mResizeShapeBitmap;
 
     public ResizeFrameView(final Context context) {
@@ -46,10 +47,11 @@ abstract class ResizeFrameView extends FrameLayout {
 
     private void initFrame(final View resizableView) {
         this.mResizableView = resizableView;
-        mResizableView.setOnTouchListener(createDragListener());
+        mResizableView.setOnTouchListener(createResizableViewListener());
 
         initShapeBitmap();
         createNestedLayout(resizableView);
+
 
 
     }
@@ -59,10 +61,9 @@ abstract class ResizeFrameView extends FrameLayout {
 
         final LinearLayout nestedFrameLayout = new LinearLayout(getContext());
         nestedFrameLayout.setOrientation(LinearLayout.VERTICAL);
-        nestedFrameLayout.setBackgroundColor(Color.GRAY);
         final LayoutParams nestedFrameLayoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER);
-        final int horizontalMargin = mResizeShapeBitmap.getWidth() / 2;
-        final int verticalMargin = mResizeShapeBitmap.getHeight() / 2;
+        final int horizontalMargin = mResizeShapeBitmap.getWidth();
+        final int verticalMargin = mResizeShapeBitmap.getHeight();
         nestedFrameLayoutParams.setMargins(horizontalMargin, verticalMargin, horizontalMargin, verticalMargin);
         addView(nestedFrameLayout, nestedFrameLayoutParams);
 
@@ -95,6 +96,22 @@ abstract class ResizeFrameView extends FrameLayout {
         return bitmap;
     }
 
+    private void initStretchView() {
+        if (mStretchView != null) {
+            return;
+        }
+
+        mStretchView = new ImageView(getContext());
+        mStretchView.setImageResource(R.drawable.ic_stretch);
+        mStretchView.setBackgroundResource(R.drawable.stretch_shape_background);
+        mStretchView.setOnTouchListener(createStretchListener());
+
+        final int stretchGravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT | Gravity.BOTTOM;
+        final LayoutParams stretchViewLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, stretchGravity);
+
+        addView(mStretchView, stretchViewLayoutParams);
+    }
+
 
     private void initShapes() {
 
@@ -112,21 +129,22 @@ abstract class ResizeFrameView extends FrameLayout {
 
         final int[] positions = new int[4];
 
-        positions[0] = Gravity.CENTER | Gravity.LEFT;
-        positions[1] = Gravity.CENTER | Gravity.TOP;
-        positions[2] = Gravity.CENTER | Gravity.RIGHT;
-        positions[3] = Gravity.CENTER | Gravity.BOTTOM;
+        positions[0] = Gravity.CENTER_VERTICAL | Gravity.LEFT;
+        positions[1] = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
+        positions[2] = Gravity.CENTER_VERTICAL | Gravity.RIGHT;
+        positions[3] = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
 
         final int width = mResizeShapeBitmap.getWidth(), height = mResizeShapeBitmap.getHeight();
 
         for (int position : positions) {
-            final LayoutParams params = new LayoutParams(width, height, position);
+            final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, position);
 
             final ResizeShapeView resizeShapeView = new ResizeShapeView(getContext());
             resizeShapeView.setImageBitmap(mResizeShapeBitmap);
             resizeShapeView.setOnTouchListener(createShapesListener());
             resizeShapeView.setFocusable(true);
             resizeShapeView.setClickable(true);
+            resizeShapeView.setPadding(width / 2, height / 2, width / 2, height / 2);
             addView(resizeShapeView, params);
 
 
@@ -138,10 +156,15 @@ abstract class ResizeFrameView extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        initShapes();
+        // initShapes();
+        // initStretchView();
     }
+
 
     public abstract OnTouchListener createShapesListener();
 
-    public abstract OnTouchListener createDragListener();
+    public abstract OnTouchListener createResizableViewListener();
+
+    public abstract OnTouchListener createStretchListener();
+
 }

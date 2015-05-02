@@ -9,7 +9,7 @@ import android.widget.ImageView;
  */
 class ResizeShapeView extends ImageView {
 
-    public static int count = 0;
+    public static int sCount = 0;
     private int shapeId;
 
     public ResizeShapeView(final Context context) {
@@ -20,12 +20,12 @@ class ResizeShapeView extends ImageView {
 
 
     private void initId() {
-        if (count > 4) {
-            throw new IllegalStateException("There's should be four balls only !!" + "\n" + shapeId);
+        if (sCount > 4) {
+            sCount = 0;
         }
 
 
-        this.shapeId = count++;
+        this.shapeId = sCount++;
     }
 
 

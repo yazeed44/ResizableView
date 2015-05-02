@@ -1,10 +1,6 @@
 package net.yazeed44.resizableviewlibrary;
 
-import android.content.Context;
-import android.graphics.Point;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 class Resizer {
@@ -55,14 +51,6 @@ class Resizer {
         return this;
     }
 
-    private Point getScreenSize() {
-        final Display display = ((WindowManager) mResizableView.getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        final Point size = new Point();
-        display.getSize(size);
-
-        return size;
-    }
-
     public void resize() {
 
         if (mCounter > 0) {
@@ -73,36 +61,11 @@ class Resizer {
 
         mCounter++;
 
-        final int shapeWidth = mResizableView.getResources().getDimensionPixelSize(R.dimen.shape_width);
-        final int shapeHeight = mResizableView.getResources().getDimensionPixelSize(R.dimen.shape_height);
-
-        final int maxWidth = getMaxWidth() - shapeWidth;
-        final int maxHeight = getMaxHeight() - shapeHeight;
-
-        if (mNewParams.width > maxWidth) {
-            mNewParams.width = maxWidth;
-        }
-
-        if (mNewParams.height > maxHeight) {
-            mNewParams.height = maxHeight;
-        }
-
 
         mResizableView.setLayoutParams(mNewParams);
 
     }
 
-    private int getMaxWidth() {
-        final Point screenSize = getScreenSize();
 
-        return screenSize.x;
-
-    }
-
-    private int getMaxHeight() {
-        final Point screenSize = getScreenSize();
-
-        return screenSize.y;
-    }
 
 }

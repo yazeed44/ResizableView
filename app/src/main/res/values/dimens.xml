@@ -3,6 +3,8 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="shape_width">15dp</dimen>
-    <dimen name="shape_height">15dp</dimen>
+    <dimen name="resize_shape_width">12dp</dimen>
+    <dimen name="resize_shape_height">12dp</dimen>
+    <dimen name="stretch_shape_width">15dp</dimen>
+    <dimen name="stretch_shape_height">15dp</dimen>
 </resources>

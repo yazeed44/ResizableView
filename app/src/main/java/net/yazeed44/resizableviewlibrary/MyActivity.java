@@ -1,6 +1,7 @@
 package net.yazeed44.resizableviewlibrary;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,16 +15,16 @@ public class MyActivity extends Activity {
 
 
         final ImageView resizableImage = new ImageView(this);
+        resizableImage.setImageResource(R.drawable.photo_resizeable);
         resizableImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        //  resizableImage.setClickable(false);
-        //  resizableImage.setFocusable(false);
-        resizableImage.setImageDrawable(getResources().getDrawable(R.drawable.photo_resizeable));
+        resizableImage.setBackgroundColor(Color.WHITE);
+
 
         final ResizableViewLayout view = new ResizableViewLayout(getBaseContext());
         view.setResizableView(resizableImage);
-        addContentView(view, new LinearLayout.LayoutParams(400, 400));
-        view.setTranslationX(0);
-        view.setTranslationY(0);
+        addContentView(view, new LinearLayout.LayoutParams(600, 600));
+        view.setX(0);
+        view.setY(0);
 
 
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="ball_line">#ffeef2f2</color>
+    <color name="frame_background_line">#506b6b75</color>
 
 </resources>
