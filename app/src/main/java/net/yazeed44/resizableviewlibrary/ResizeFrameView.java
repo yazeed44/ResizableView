@@ -26,6 +26,7 @@ abstract class ResizeFrameView extends FrameLayout {
     protected int mShapeId = 0;
     protected View mResizableView;
     protected ImageView mStretchView;
+    protected ImageView mRotateView;
     private Bitmap mResizeShapeBitmap;
 
     public ResizeFrameView(final Context context) {
@@ -55,6 +56,7 @@ abstract class ResizeFrameView extends FrameLayout {
 
 
     }
+
 
     private void createNestedLayout(final View resizableView) {
 
@@ -124,6 +126,24 @@ abstract class ResizeFrameView extends FrameLayout {
 
     }
 
+    private void initRotateView() {
+
+        if (mRotateView != null) {
+            return;
+        }
+
+        mRotateView = new ImageView(getContext());
+        mRotateView.setImageResource(R.drawable.ic_rotate);
+        mRotateView.setBackgroundResource(R.drawable.stretch_shape_background);
+        mRotateView.setOnTouchListener(createRotateListener());
+
+        final int rotateViewGravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT | Gravity.TOP;
+        final LayoutParams rotateViewLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, rotateViewGravity);
+
+        addView(mRotateView, rotateViewLayoutParams);
+
+    }
+
 
     private void attachShapes() {
 
@@ -148,16 +168,46 @@ abstract class ResizeFrameView extends FrameLayout {
             addView(resizeShapeView, params);
 
 
+
             mResizeShapes.add(resizeShapeView);
+
         }
     }
 
+    private void initMarginValues() {
+
+        final LayoutParams params = (LayoutParams) getLayoutParams();
+
+        if (params.topMargin != 0 && params.bottomMargin != 0 && params.leftMargin != 0 && params.rightMargin != 0) {
+            return;
+        }
+
+
+        final int topMargin = Math.round(getTranslationY());
+        final int bottomMargin = topMargin + getHeight();
+
+        final int leftMargin = Math.round(getTranslationX());
+        final int rightMargin = leftMargin + getWidth();
+
+        new Resizer(this)
+                .topMargin(topMargin)
+                .bottomMargin(bottomMargin)
+                .leftMargin(leftMargin)
+                .rightMargin(rightMargin)
+                .resize();
+
+        ;
+
+
+    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        // initShapes();
-        // initStretchView();
+//         initShapes();
+        //       initStretchView();
+        //     initRotateView();
+        //initMarginValues();
     }
 
 
@@ -166,5 +216,7 @@ abstract class ResizeFrameView extends FrameLayout {
     public abstract OnTouchListener createResizableViewListener();
 
     public abstract OnTouchListener createStretchListener();
+
+    public abstract OnTouchListener createRotateListener();
 
 }

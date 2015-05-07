@@ -20,11 +20,17 @@ public class MyActivity extends Activity {
         resizableImage.setBackgroundColor(Color.WHITE);
 
 
+
         final ResizableViewLayout view = new ResizableViewLayout(getBaseContext());
+        view.setClipChildren(false);
+        view.setMinimumWidth(600);
+        view.setMinimumHeight(600);
         view.setResizableView(resizableImage);
-        addContentView(view, new LinearLayout.LayoutParams(600, 600));
-        view.setX(0);
-        view.setY(0);
+
+        final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(600, 600, 1);
+        addContentView(view, params);
+        //view.setTranslationX(400);
+        //view.setTranslationY(600);
 
 
     }

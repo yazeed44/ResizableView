@@ -1,6 +1,7 @@
 package net.yazeed44.resizableviewlibrary;
 
 import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
 
 class Resizer {
@@ -8,9 +9,9 @@ class Resizer {
     public static final String TAG = "Resizer";
     private int mCounter = 0;
     private FrameLayout.LayoutParams mNewParams;
-    private ResizableViewLayout mResizableView;
+    private View mResizableView;
 
-    public Resizer(final ResizableViewLayout resizableView) {
+    public Resizer(final View resizableView) {
         this.mNewParams = (FrameLayout.LayoutParams) resizableView.getLayoutParams();
         this.mResizableView = resizableView;
     }
