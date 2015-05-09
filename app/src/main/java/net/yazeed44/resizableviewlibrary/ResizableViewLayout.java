@@ -351,6 +351,8 @@ public class ResizableViewLayout extends ResizeFrameView {
             final PointF delta = detector.getFocusDelta();
 
             if (mFocusX == 0.0 && mFocusY == 0.0) {
+                //This is supposed to be the first move event
+                //In the first move event the value of delta will be so big since there's no past events , so we will skip the first event
                 mFocusX = 0.1f;
                 mFocusY = 0.1f;
                 return true;
