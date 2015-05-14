@@ -156,7 +156,7 @@ abstract class ResizeFrameView extends FrameLayout {
 
         final int width = mResizeShapeBitmap.getWidth(), height = mResizeShapeBitmap.getHeight();
 
-        for (int position : positions) {
+        for (final int position : positions) {
             final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, position);
 
             final ResizeShapeView resizeShapeView = new ResizeShapeView(getContext());
@@ -177,9 +177,9 @@ abstract class ResizeFrameView extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        //initShapes();
-        //initStretchView();
-        //initRotateView();
+        initShapes();
+        initStretchView();
+        initRotateView();
     }
 
 

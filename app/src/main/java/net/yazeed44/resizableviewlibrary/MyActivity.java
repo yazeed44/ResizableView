@@ -28,8 +28,8 @@ public class MyActivity extends Activity {
 
         final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(600, 600);
         addContentView(view, params);
-        //view.setTranslationX(400);
-        //view.setTranslationY(600);
+        view.setTranslationX(400);
+        view.setTranslationY(600);
 
 
     }

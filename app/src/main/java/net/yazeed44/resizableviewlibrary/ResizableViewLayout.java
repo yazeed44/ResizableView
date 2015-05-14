@@ -26,6 +26,9 @@ public class ResizableViewLayout extends ResizeFrameView {
     private float mFocusY = 0.f;
     private float mAngle = 0;
 
+    private float mOrgX = 1;
+    private float mOrgY;
+
     public ResizableViewLayout(Context context) {
         super(context);
     }
@@ -50,11 +53,6 @@ public class ResizableViewLayout extends ResizeFrameView {
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleViewListener());
         mMoveDetector = new MoveGestureDetector(getContext(), new MoveViewListener());
         mRotateDetector = new RotateGestureDetector(getContext(), new RotateViewListener());
-
-
-        // mFocusX = Util.getScreenDimension(getContext()).x / 2;
-        // mFocusY = Util.getScreenDimension(getContext()).y / 2;
-
 
 
     }
@@ -104,34 +102,16 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private void drag2(final MotionEvent shapeEvent, final View shape) {
 
-        //TODO Fix over sizing on the first touch
+
+        final int[] xy = new int[2];
+        getLocationOnScreen(xy);
 
 
+        final float newWidth = shapeEvent.getRawX() - xy[0];
 
-        /*if (true){
-            setScaleX(shapeEvent.getRawX() / mOrgX  );
+        final float scaleX = newWidth / (float) getWidth();
 
-            return;
-        }*/
-
-
-        final int currentLeftMargin = ((LayoutParams) getLayoutParams()).leftMargin;
-        final int currentRightMargin = currentLeftMargin + getWidth();
-
-
-        final int rightOffset = Math.round(shapeEvent.getRawX() - currentRightMargin);
-        final int newRightMargin = currentRightMargin + rightOffset;
-        final int newLeftMargin = currentLeftMargin;
-
-        final int newWidth = Math.round((newRightMargin - newLeftMargin));
-
-       /* final int widthOffset = rightOffset > 0 ? 15 : -15;
-        final int newWidth = getWidth() + widthOffset;*/
-        new Resizer(this)
-                .leftMargin(newLeftMargin)
-                .rightMargin(newRightMargin)
-                .width(newWidth)
-                .resize();
+        setScaleX(scaleX);
     }
 
     private int getWidthOffset(final int rightOffset) {
@@ -157,6 +137,8 @@ public class ResizableViewLayout extends ResizeFrameView {
                 .bottomMargin(newBottomMargin)
                 .height(newHeight)
                 .resize();
+
+
     }
 
 
@@ -180,14 +162,12 @@ public class ResizableViewLayout extends ResizeFrameView {
     private void assignShapeId(final View view) {
 
 
+
         mShapeId = ((ResizeShapeView) view).getShapeId();
 
 
+
     }
-
-
-
-
 
     @Override
     public OnTouchListener createShapesListener() {
@@ -213,6 +193,11 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
                         onDraggingShape(motionEvent, v);
+                        /*final int[] xy = new int[2];
+                        v.getLocationOnScreen(xy);
+                        mOrgX = xy[0];
+                        mOrgY = xy[1];*/
+                        mOrgX = motionEvent.getRawX();
 
                         break;
                     }
@@ -240,7 +225,8 @@ public class ResizableViewLayout extends ResizeFrameView {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
-                mRotateDetector.onTouchEvent(event);
+                mScaleDetector.onTouchEvent(event);
+                // mRotateDetector.onTouchEvent(event);
 
 
                 mMoveDetector.onTouchEvent(event);
@@ -254,14 +240,18 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private void display() {
 
+
+        final int[] actualCoordinates = new int[2];
+
+        getLocationOnScreen(actualCoordinates);
+
         final int width = getWidth();
         final int height = getHeight();
 
         final float scaledViewCenterX = (width * mScaleFactor) / 2f;
         final float scaledViewCenterY = (height * mScaleFactor) / 2f;
 
-        //setScaleX(mScaleFactor);
-        //setScaleY(mScaleFactor);
+
 
 
         setTranslationX(getTranslationX() + mFocusX);
@@ -274,7 +264,11 @@ public class ResizableViewLayout extends ResizeFrameView {
     }
 
     private void applyRotation() {
-        setRotation(mAngle);
+        float scaledImageCenterX = (getWidth() * mScaleFactor) / 2;
+        float scaledImageCenterY = (getHeight() * mScaleFactor) / 2;
+
+
+        setRotation(mAngle + getRotation());
     }
 
     @Override
@@ -322,6 +316,8 @@ public class ResizableViewLayout extends ResizeFrameView {
             mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10f));
 
 
+            setScaleX(mScaleFactor);
+            setScaleY(mScaleFactor);
 
 
             Log.d("ScaleListener", "Scale factor  " + mScaleFactor);
@@ -331,20 +327,6 @@ public class ResizableViewLayout extends ResizeFrameView {
     }
 
     private class MoveViewListener extends MoveGestureDetector.SimpleOnMoveGestureListener {
-
-        @Override
-        public boolean onMoveBegin(MoveGestureDetector detector) {
-
-           /*if (mFocusX == 0.0){
-                mFocusX -= Util.getScreenDimension(getContext()).x/2;
-            }
-            else if (mFocusY == 0.0){
-                mFocusY -= Util.getScreenDimension(getContext()).y/2;
-            }*/
-
-            return true;
-        }
-
         @Override
         public boolean onMove(MoveGestureDetector detector) {
 
@@ -363,6 +345,8 @@ public class ResizableViewLayout extends ResizeFrameView {
             mFocusY += delta.y;
 
             Log.d(TAG, "New focus , x : " + mFocusX + "  ,  y : " + mFocusY);
+
+
             return true;
         }
 
@@ -371,35 +355,22 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private class RotateViewListener extends RotateGestureDetector.SimpleOnRotateGestureListener {
 
-
-        @Override
-        public boolean onRotateBegin(RotateGestureDetector detector) {
-
-            /*final float scaledViewCenterX = (getWidth() * mScaleFactor) / 2f;
-            final float scaledViewCenterY = (getHeight() * mScaleFactor) / 2f;
-            setPivotX(scaledViewCenterX);
-            setPivotY(scaledViewCenterY);
-*/
-
-
-            return super.onRotateBegin(detector);
-        }
-
         @Override
         public boolean onRotate(RotateGestureDetector detector) {
 
+
             mAngle -= detector.getRotationDegreesDelta();
+            setRotation(mAngle);
+
+
+            Log.d(TAG, "Angle delta  " + detector.getRotationDegreesDelta());
             Log.d(TAG, "New Angle  " + mAngle);
 
-            applyRotation();
-            return true;
+            //applyRotation();
+
+            return false;
         }
 
-        @Override
-        public void onRotateEnd(RotateGestureDetector detector) {
-            super.onRotateEnd(detector);
-        }
+
     }
-
-
 }
