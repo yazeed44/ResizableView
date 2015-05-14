@@ -69,7 +69,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                 break;
 
             case 2:
-                drag2(shapeMotionEvent, shape);
+                drag2(shapeMotionEvent);
                 break;
 
             case 3:
@@ -86,21 +86,18 @@ public class ResizableViewLayout extends ResizeFrameView {
     private void drag0(final MotionEvent shapeEvent) {
 
 
+        final int[] xy = new int[2];
+        getLocationOnScreen(xy);
 
-        final int newMarginRight = getRight();
-        final int newMarginLeft = (int) (getLeft() + (shapeEvent.getRawX() - getLeft()));
+        final float newWidth = shapeEvent.getRawX() - xy[0];
 
-        final int newWidth = newMarginRight - newMarginLeft;
+        final float scaleX = newWidth / (float) getWidth();
 
-        new Resizer(this)
-                .rightMargin(newMarginRight)
-                .leftMargin(newMarginLeft)
-                .width(newWidth)
-                .resize();
+        setScaleX(scaleX);
 
     }
 
-    private void drag2(final MotionEvent shapeEvent, final View shape) {
+    private void drag2(final MotionEvent shapeEvent) {
 
 
         final int[] xy = new int[2];
@@ -112,11 +109,6 @@ public class ResizableViewLayout extends ResizeFrameView {
         final float scaleX = newWidth / (float) getWidth();
 
         setScaleX(scaleX);
-    }
-
-    private int getWidthOffset(final int rightOffset) {
-
-        return 0;
     }
 
 
@@ -144,17 +136,15 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
     private void drag3(final MotionEvent shapeEvent) {
-        //TODO Fix over sizing on the first touch
 
-        final int newTopMargin = getTop();
-        final int newBottomMargin = (int) (getBottom() + (shapeEvent.getRawY() - getBottom()));
-        final int newHeight = newBottomMargin - newTopMargin;
+        final int[] xy = new int[2];
+        getLocationOnScreen(xy);
 
-        new Resizer(this)
-                .topMargin(newTopMargin)
-                .bottomMargin(newBottomMargin)
-                .height(newHeight)
-                .resize();
+        final float newHeight = shapeEvent.getRawY() - xy[1];
+
+        final float scaleY = newHeight / (float) getHeight();
+
+        setScaleY(scaleY);
 
 
     }
@@ -278,7 +268,7 @@ public class ResizableViewLayout extends ResizeFrameView {
             public boolean onTouch(View v, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    drag2(event, v);
+                    drag2(event);
                     drag3(event);
                 }
                 return true;
