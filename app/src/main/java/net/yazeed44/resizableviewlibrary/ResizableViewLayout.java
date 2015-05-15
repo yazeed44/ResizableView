@@ -123,22 +123,17 @@ public class ResizableViewLayout extends ResizeFrameView {
     private void drag1(final MotionEvent shapeEvent) {
         //TODO Fix over sizing on the first touch
 
-        final int currentTopMargin = ((LayoutParams) getLayoutParams()).topMargin;
-        final int currentBottomMargin = ((LayoutParams) getLayoutParams()).bottomMargin;
+        final int[] xy = new int[2];
+        getLocationOnScreen(xy);
 
 
-        final int newTopMargin = (int) (currentTopMargin + (shapeEvent.getRawY() - currentTopMargin));
-        final int newBottomMargin = currentBottomMargin == 0 ? getHeight() + currentTopMargin : currentBottomMargin;
-        final int newHeight = newBottomMargin - newTopMargin;
+        final float newHeight = (getHeight() * mScaleYFactor) + (xy[1] - shapeEvent.getRawY());
 
+        final float scaleY = newHeight / (float) getHeight();
 
-        new Resizer(this)
-                .topMargin(newTopMargin)
-                .bottomMargin(newBottomMargin)
-                .height(newHeight)
-                .resize();
+        mScaleYFactor = scaleY;
 
-
+        setScaleY(mScaleYFactor);
     }
 
 
