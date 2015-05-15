@@ -18,7 +18,8 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     public static final String TAG = ResizableViewLayout.class.getSimpleName();
 
-    private float mScaleFactor = 1.0f;
+    private float mScaleXFactor = 1.0f;
+    private float mScaleYFactor = 1.0f;
     private ScaleGestureDetector mScaleDetector;
     private MoveGestureDetector mMoveDetector;
     private RotateGestureDetector mRotateDetector;
@@ -89,11 +90,16 @@ public class ResizableViewLayout extends ResizeFrameView {
         final int[] xy = new int[2];
         getLocationOnScreen(xy);
 
-        final float newWidth = shapeEvent.getRawX() - xy[0];
+        final float newWidth = (getWidth() * mScaleXFactor) + (xy[0] - shapeEvent.getRawX());
 
-        final float scaleX = newWidth / (float) getWidth();
 
-        setScaleX(scaleX);
+        final float scaleX = (newWidth / (float) getWidth());
+
+
+        mScaleXFactor = scaleX;
+
+
+        setScaleX(mScaleXFactor);
 
     }
 
@@ -107,6 +113,8 @@ public class ResizableViewLayout extends ResizeFrameView {
         final float newWidth = shapeEvent.getRawX() - xy[0];
 
         final float scaleX = newWidth / (float) getWidth();
+
+        mScaleXFactor = scaleX;
 
         setScaleX(scaleX);
     }
@@ -231,19 +239,6 @@ public class ResizableViewLayout extends ResizeFrameView {
     private void display() {
 
 
-        final int[] actualCoordinates = new int[2];
-
-        getLocationOnScreen(actualCoordinates);
-
-        final int width = getWidth();
-        final int height = getHeight();
-
-        final float scaledViewCenterX = (width * mScaleFactor) / 2f;
-        final float scaledViewCenterY = (height * mScaleFactor) / 2f;
-
-
-
-
         setTranslationX(getTranslationX() + mFocusX);
         setTranslationY(getTranslationY() + mFocusY);
 
@@ -253,13 +248,6 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     }
 
-    private void applyRotation() {
-        float scaledImageCenterX = (getWidth() * mScaleFactor) / 2;
-        float scaledImageCenterY = (getHeight() * mScaleFactor) / 2;
-
-
-        setRotation(mAngle + getRotation());
-    }
 
     @Override
     public OnTouchListener createStretchListener() {
@@ -301,16 +289,18 @@ public class ResizableViewLayout extends ResizeFrameView {
         public boolean onScale(ScaleGestureDetector detector) {
 
 
-            mScaleFactor *= detector.getScaleFactor();
+            mScaleXFactor *= detector.getScaleFactor();
+            mScaleYFactor *= detector.getScaleFactor();
 
-            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10f));
-
-
-            setScaleX(mScaleFactor);
-            setScaleY(mScaleFactor);
+            mScaleXFactor = Math.max(0.1f, Math.min(mScaleXFactor, 10f));
+            mScaleYFactor = Math.max(0.1f, Math.min(mScaleYFactor, 10f));
 
 
-            Log.d("ScaleListener", "Scale factor  " + mScaleFactor);
+            setScaleX(mScaleXFactor);
+            setScaleY(mScaleYFactor);
+
+
+            Log.d("ScaleListener", "Scale factor , x  " + mScaleXFactor + "  , y  " + mScaleYFactor);
             return true;
         }
 
