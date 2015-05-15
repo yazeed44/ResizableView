@@ -9,7 +9,6 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.almeros.android.multitouch.MoveGestureDetector;
-import com.almeros.android.multitouch.RotateGestureDetector;
 
 /**
  * Created by yazeed44 on 10/11/14.
@@ -22,10 +21,10 @@ public class ResizableViewLayout extends ResizeFrameView {
     private float mScaleYFactor = 1.0f;
     private ScaleGestureDetector mScaleDetector;
     private MoveGestureDetector mMoveDetector;
-    private RotateGestureDetector mRotateDetector;
     private float mFocusX = 0.f;
     private float mFocusY = 0.f;
     private float mAngle = 0;
+    private float mMaxScaleFactor = 3;
 
 
     public ResizableViewLayout(Context context) {
@@ -51,7 +50,6 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleViewListener());
         mMoveDetector = new MoveGestureDetector(getContext(), new MoveViewListener());
-        mRotateDetector = new RotateGestureDetector(getContext(), new RotateViewListener());
 
 
     }
@@ -241,12 +239,12 @@ public class ResizableViewLayout extends ResizeFrameView {
     @Override
     public void setScaleX(float scaleX) {
 
-        if (scaleX < -10) {
-            mScaleXFactor = -10;
+        if (scaleX < -mMaxScaleFactor) {
+            mScaleXFactor = -mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
             return;
-        } else if (mScaleXFactor > 10) {
-            mScaleXFactor = 10;
+        } else if (mScaleXFactor > mMaxScaleFactor) {
+            mScaleXFactor = mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
             return;
         }
@@ -257,19 +255,22 @@ public class ResizableViewLayout extends ResizeFrameView {
     @Override
     public void setScaleY(float scaleY) {
 
-        if (mScaleYFactor < -10) {
-            mScaleYFactor = -10;
+        if (mScaleYFactor < -mMaxScaleFactor) {
+            mScaleYFactor = -mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
             return;
-        } else if (mScaleYFactor > 10) {
-            mScaleYFactor = 10;
+        } else if (mScaleYFactor > mMaxScaleFactor) {
+            mScaleYFactor = mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
             return;
         }
 
         super.setScaleY(scaleY);
+    }
 
-        super.setScaleY(scaleY);
+
+    public void setMaxScaleFactor(final float scaleFactor) {
+        mMaxScaleFactor = scaleFactor;
     }
 
     @Override
@@ -364,24 +365,5 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     }
 
-    private class RotateViewListener extends RotateGestureDetector.SimpleOnRotateGestureListener {
 
-        @Override
-        public boolean onRotate(RotateGestureDetector detector) {
-
-
-            mAngle -= detector.getRotationDegreesDelta();
-            setRotation(mAngle);
-
-
-            Log.d(TAG, "Angle delta  " + detector.getRotationDegreesDelta());
-            Log.d(TAG, "New Angle  " + mAngle);
-
-            //applyRotation();
-
-            return false;
-        }
-
-
-    }
 }
