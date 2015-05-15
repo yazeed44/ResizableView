@@ -27,8 +27,6 @@ public class ResizableViewLayout extends ResizeFrameView {
     private float mFocusY = 0.f;
     private float mAngle = 0;
 
-    private float mOrgX = 1;
-    private float mOrgY;
 
     public ResizableViewLayout(Context context) {
         super(context);
@@ -147,6 +145,8 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         final float scaleY = newHeight / (float) getHeight();
 
+        mScaleYFactor = scaleY;
+
         setScaleY(scaleY);
 
 
@@ -186,11 +186,6 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
                         onDraggingShape(motionEvent, v);
-                        /*final int[] xy = new int[2];
-                        v.getLocationOnScreen(xy);
-                        mOrgX = xy[0];
-                        mOrgY = xy[1];*/
-                        mOrgX = motionEvent.getRawX();
 
                         break;
                     }
@@ -243,6 +238,39 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     }
 
+    @Override
+    public void setScaleX(float scaleX) {
+
+        if (scaleX < -10) {
+            mScaleXFactor = -10;
+            super.setScaleX(mScaleXFactor);
+            return;
+        } else if (mScaleXFactor > 10) {
+            mScaleXFactor = 10;
+            super.setScaleX(mScaleXFactor);
+            return;
+        }
+
+        super.setScaleX(scaleX);
+    }
+
+    @Override
+    public void setScaleY(float scaleY) {
+
+        if (mScaleYFactor < -10) {
+            mScaleYFactor = -10;
+            super.setScaleY(mScaleYFactor);
+            return;
+        } else if (mScaleYFactor > 10) {
+            mScaleYFactor = 10;
+            super.setScaleY(mScaleYFactor);
+            return;
+        }
+
+        super.setScaleY(scaleY);
+
+        super.setScaleY(scaleY);
+    }
 
     @Override
     public OnTouchListener createStretchListener() {
@@ -287,10 +315,6 @@ public class ResizableViewLayout extends ResizeFrameView {
             mScaleXFactor *= detector.getScaleFactor();
             mScaleYFactor *= detector.getScaleFactor();
 
-            mScaleXFactor = Math.max(0.1f, Math.min(mScaleXFactor, 10f));
-            mScaleYFactor = Math.max(0.1f, Math.min(mScaleYFactor, 10f));
-
-
             setScaleX(mScaleXFactor);
             setScaleY(mScaleYFactor);
 
@@ -315,9 +339,21 @@ public class ResizableViewLayout extends ResizeFrameView {
                 return true;
             }
 
+            if (mScaleXFactor < 0) {
+                mFocusX -= delta.x;
+            } else {
+                mFocusX += delta.x;
+            }
 
-            mFocusX += delta.x;
-            mFocusY += delta.y;
+            if (mScaleYFactor < 0) {
+                mFocusY -= delta.y;
+            } else {
+                mFocusY += delta.y;
+            }
+
+
+
+
 
             Log.d(TAG, "New focus , x : " + mFocusX + "  ,  y : " + mFocusY);
 
