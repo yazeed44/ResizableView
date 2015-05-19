@@ -117,7 +117,6 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
     private void drag1(final MotionEvent shapeEvent) {
-        //TODO Fix over sizing on the first touch
 
         final int[] xy = new int[2];
         getLocationOnScreen(xy);
@@ -199,6 +198,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                 }
 
                 return true;
+
             }
         };
 
@@ -206,10 +206,16 @@ public class ResizableViewLayout extends ResizeFrameView {
     }
 
     @Override
+    public boolean isSelected() {
+        return super.isSelected();
+    }
+
+    @Override
     public OnTouchListener createResizableViewListener() {
         return new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
 
                 mScaleDetector.onTouchEvent(event);
                 // mRotateDetector.onTouchEvent(event);
@@ -235,6 +241,7 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
     }
+
 
     @Override
     public void setScaleX(float scaleX) {

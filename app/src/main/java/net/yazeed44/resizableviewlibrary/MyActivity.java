@@ -1,13 +1,16 @@
 package net.yazeed44.resizableviewlibrary;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 public class MyActivity extends Activity {
 
+
+    private ResizableViewLayout mResizeLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -17,21 +20,29 @@ public class MyActivity extends Activity {
         final ImageView resizableImage = new ImageView(this);
         resizableImage.setImageResource(R.drawable.photo_resizeable);
         resizableImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        resizableImage.setBackgroundColor(Color.WHITE);
 
 
+        mResizeLayout = new ResizableViewLayout(getBaseContext());
+        mResizeLayout.setMinimumWidth(600);
+        mResizeLayout.setMinimumHeight(600);
 
-        final ResizableViewLayout view = new ResizableViewLayout(getBaseContext());
-        view.setMinimumWidth(600);
-        view.setMinimumHeight(600);
-        view.setResizableView(resizableImage);
+        mResizeLayout.setResizableView(resizableImage);
 
         final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(600, 600);
-        addContentView(view, params);
-        view.setTranslationX(400);
-        view.setTranslationY(600);
+        addContentView(mResizeLayout, params);
+
+        mResizeLayout.setLayoutParams(new FrameLayout.LayoutParams(600, 600));
+        mResizeLayout.setTranslationX(400);
+        mResizeLayout.setTranslationY(600);
 
 
     }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        ResizableViewLayout.handleActivityDispatchTouchEvent(ev, mResizeLayout);
+        return super.dispatchTouchEvent(ev);
+    }
+
 
 }

@@ -3,10 +3,12 @@ package net.yazeed44.resizableviewlibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -27,7 +29,9 @@ abstract class ResizeFrameView extends FrameLayout {
     protected View mResizableView;
     protected ImageView mStretchView;
     protected ImageView mRotateView;
+    protected boolean mShouldDrawFrame = true;
     private Bitmap mResizeShapeBitmap;
+    private Paint mFramePaint;
 
     public ResizeFrameView(final Context context) {
         super(context);
@@ -41,6 +45,25 @@ abstract class ResizeFrameView extends FrameLayout {
         super(context, set, defStyle);
     }
 
+    public static void handleActivityDispatchTouchEvent(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            resizableViewLayout.setFrameVisibility(isTouchEventContained(event, resizableViewLayout));
+        }
+    }
+
+    private static boolean isTouchEventContained(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
+        final int[] xy = new int[2];
+        resizableViewLayout.getLocationOnScreen(xy);
+
+        final boolean containX = event.getRawX() >= (xy[0]) && event.getRawX() <= (resizableViewLayout.getWidthWithScale() + xy[0]);
+
+        final boolean containY = event.getRawY() >= (xy[1]) && event.getRawY() <= (resizableViewLayout.getHeightWithScale() + xy[1]);
+
+        return containX && containY;
+
+
+    }
 
     public void setResizableView(final View resizableView) {
         initFrame(resizableView);
@@ -50,15 +73,27 @@ abstract class ResizeFrameView extends FrameLayout {
         this.mResizableView = resizableView;
         mResizableView.setOnTouchListener(createResizableViewListener());
 
+        setWillNotDraw(false);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
         initShapeBitmap();
-        createNestedLayout(resizableView);
-
-
+        initPaint();
+        createNestedLayout();
 
     }
 
+    private void initPaint() {
+        mFramePaint = new Paint();
+        mFramePaint.setColor(getResources().getColor(R.color.frame_background_line));
+        //mFramePaint.setAlpha(100);
+        mFramePaint.setAntiAlias(true);
+        mFramePaint.setDither(true);
+        mFramePaint.setStyle(Paint.Style.STROKE);
+        mFramePaint.setStrokeWidth(5.5f);
+        mFramePaint.setStrokeCap(Paint.Cap.SQUARE);
+    }
 
-    private void createNestedLayout(final View resizableView) {
+    private void createNestedLayout() {
 
 
         final LinearLayout nestedFrameLayout = new LinearLayout(getContext());
@@ -71,12 +106,11 @@ abstract class ResizeFrameView extends FrameLayout {
 
 
         final LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        resizableView.setLayoutParams(imageParams);
+        mResizableView.setLayoutParams(imageParams);
 
-        nestedFrameLayout.addView(resizableView, imageParams);
+        nestedFrameLayout.addView(mResizableView, imageParams);
 
     }
-
 
     private void initShapeBitmap() {
 
@@ -114,7 +148,6 @@ abstract class ResizeFrameView extends FrameLayout {
         addView(mStretchView, stretchViewLayoutParams);
     }
 
-
     private void initShapes() {
 
         if (!mResizeShapes.isEmpty()) {
@@ -143,7 +176,6 @@ abstract class ResizeFrameView extends FrameLayout {
         addView(mRotateView, rotateViewLayoutParams);
 
     }
-
 
     private void attachShapes() {
 
@@ -174,6 +206,14 @@ abstract class ResizeFrameView extends FrameLayout {
         }
     }
 
+    public int getWidthWithScale() {
+        return Math.round(getWidth() * getScaleX());
+    }
+
+    public int getHeightWithScale() {
+        return Math.round(getHeight() * getScaleY());
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -182,6 +222,49 @@ abstract class ResizeFrameView extends FrameLayout {
         initRotateView();
     }
 
+    public void setFrameVisibility(final boolean frameVisibility) {
+        mShouldDrawFrame = frameVisibility;
+        invalidate();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        if (!mShouldDrawFrame) {
+
+            hideResizeShapes();
+            mRotateView.setVisibility(INVISIBLE);
+            mStretchView.setVisibility(INVISIBLE);
+
+            return;
+        }
+
+
+        showResizeShapes();
+        mRotateView.setVisibility(VISIBLE);
+        mStretchView.setVisibility(VISIBLE);
+
+        final View resizableViewParent = (View) mResizableView.getParent();
+
+
+        canvas.drawRect(resizableViewParent.getLeft(), resizableViewParent.getTop(), resizableViewParent.getRight(), resizableViewParent.getBottom(), mFramePaint);
+
+
+    }
+
+    private void hideResizeShapes() {
+
+        for (final ResizeShapeView view : mResizeShapes) {
+            view.setVisibility(INVISIBLE);
+        }
+    }
+
+    private void showResizeShapes() {
+        for (final ResizeShapeView view : mResizeShapes) {
+            view.setVisibility(VISIBLE);
+        }
+    }
 
     public abstract OnTouchListener createShapesListener();
 
