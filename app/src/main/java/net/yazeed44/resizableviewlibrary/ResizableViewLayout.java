@@ -54,7 +54,7 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     }
 
-    private void onDraggingShape(final MotionEvent shapeMotionEvent, View shape) {
+    private void onDraggingShape(final MotionEvent shapeMotionEvent) {
         switch (mShapeId) {
 
             case 0:
@@ -150,12 +150,7 @@ public class ResizableViewLayout extends ResizeFrameView {
     }
 
     private void assignShapeId(final View view) {
-
-
-
         mShapeId = ((ResizeShapeView) view).getShapeId();
-
-
 
     }
 
@@ -182,7 +177,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                         //Moving the finger on screen
 
 
-                        onDraggingShape(motionEvent, v);
+                        onDraggingShape(motionEvent);
 
                         break;
                     }
@@ -203,11 +198,6 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
 
 
-    }
-
-    @Override
-    public boolean isSelected() {
-        return super.isSelected();
     }
 
     @Override

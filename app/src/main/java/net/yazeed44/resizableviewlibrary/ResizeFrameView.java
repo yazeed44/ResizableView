@@ -45,7 +45,7 @@ abstract class ResizeFrameView extends FrameLayout {
         super(context, set, defStyle);
     }
 
-    public static void handleActivityDispatchTouchEvent(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
+    public static void handleDispatchTouchEvent(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             resizableViewLayout.setFrameVisibility(isTouchEventContained(event, resizableViewLayout));
@@ -74,8 +74,6 @@ abstract class ResizeFrameView extends FrameLayout {
         mResizableView.setOnTouchListener(createResizableViewListener());
 
         setWillNotDraw(false);
-        setFocusable(true);
-        setFocusableInTouchMode(true);
         initShapeBitmap();
         initPaint();
         createNestedLayout();

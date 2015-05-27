@@ -4,5 +4,6 @@
     <string name="app_name">Resizable View Library</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="free_resize_factor_name">Free</string>
 
 </resources>

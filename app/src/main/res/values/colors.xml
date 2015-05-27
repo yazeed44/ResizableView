@@ -3,4 +3,11 @@
 
     <color name="frame_background_line">#93939d</color>
 
+    <color name="chosen_resize_factor_background">#ff9a9a9a</color>
+
+    <color name="chosen_resize_factor_text_color">#ffffffff</color>
+
+    <color name="regular_resize_factor_background">#ff747474</color>
+
+    <color name="regular_resize_factor_text_color">#ffe4e4e4</color>
 </resources>

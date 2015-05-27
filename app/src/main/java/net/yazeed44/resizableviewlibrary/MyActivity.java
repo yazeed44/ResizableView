@@ -23,8 +23,6 @@ public class MyActivity extends Activity {
 
 
         mResizeLayout = new ResizableViewLayout(getBaseContext());
-        mResizeLayout.setMinimumWidth(600);
-        mResizeLayout.setMinimumHeight(600);
 
         mResizeLayout.setResizableView(resizableImage);
 
@@ -40,7 +38,7 @@ public class MyActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        ResizableViewLayout.handleActivityDispatchTouchEvent(ev, mResizeLayout);
+        ResizableViewLayout.handleDispatchTouchEvent(ev, mResizeLayout);
         return super.dispatchTouchEvent(ev);
     }
 

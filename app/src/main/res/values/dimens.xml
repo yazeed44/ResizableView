@@ -7,4 +7,8 @@
     <dimen name="resize_shape_height">12dp</dimen>
     <dimen name="stretch_shape_width">15dp</dimen>
     <dimen name="stretch_shape_height">15dp</dimen>
+
+    <dimen name="resize_factor_spacing">6dp</dimen>
+    <dimen name="resize_factor_element_width">60dp</dimen>
+    <dimen name="resize_factor_text_size">19sp</dimen>
 </resources>
