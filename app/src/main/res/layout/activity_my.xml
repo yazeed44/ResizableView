@@ -6,7 +6,8 @@
     tools:context=".MyActivity">
 
 
-    <net.yazeed44.resizableviewlibrary.ResizeFactorRecyclerView
+    <net.yazeed44.resizableviewlibrary.AspectRatioRecyclerView
+        android:id="@+id/resize_factor_recycler"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_gravity="top|center" />

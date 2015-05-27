@@ -17,39 +17,39 @@ import java.util.ArrayList;
 /**
  * Created by yazeed44 on 5/26/15.
  */
-public class ResizeFactorRecyclerView extends RecyclerView {
+public class AspectRatioRecyclerView extends RecyclerView {
 
-    private ArrayList<ResizeFactor> mResizeFactors;
+    private ArrayList<AspectRatio> mAspectRatios;
 
-    private ResizeFactor mChosenResizeFactor;
+    private AspectRatio mChosenAspectRatio;
 
-    private float mResizeFactorElementWidth;
+    private ResizableViewLayout mResizeLayout;
 
-    public ResizeFactorRecyclerView(Context context) {
+    public AspectRatioRecyclerView(Context context) {
         super(context);
         init();
     }
 
-    public ResizeFactorRecyclerView(Context context, AttributeSet attrs) {
+    public AspectRatioRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public ResizeFactorRecyclerView(Context context, AttributeSet attrs, int defStyle) {
+    public AspectRatioRecyclerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
 
     private void init() {
 
-        mResizeFactors = ResizeUtil.getResizeFactors(getContext());
-        mChosenResizeFactor = mResizeFactors.get(0);
+        mAspectRatios = ResizeUtil.getResizeFactors(getContext());
+        mChosenAspectRatio = mAspectRatios.get(0);
 
         final GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 1);
         gridLayoutManager.setOrientation(HORIZONTAL);
 
 
-        final int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.resize_factor_spacing);
+        final int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.aspect_ratio_spacing);
 
 
         addItemDecoration(new SpacesItemDecoration(spacingInPixels));
@@ -57,6 +57,12 @@ public class ResizeFactorRecyclerView extends RecyclerView {
         setAdapter(new ResizeFactorAdapter());
         setBackgroundColor(Color.GRAY);
 
+
+    }
+
+    public void attachToResizeLayout(ResizableViewLayout resizeLayout) {
+        mResizeLayout = resizeLayout;
+        mResizeLayout.setAspectRatio(mChosenAspectRatio);
 
     }
 
@@ -68,7 +74,7 @@ public class ResizeFactorRecyclerView extends RecyclerView {
         @Override
         public ResizeFactorViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-            final View resizeFactorElement = LayoutInflater.from(getContext()).inflate(R.layout.resize_factor_element, parent, false);
+            final View resizeFactorElement = LayoutInflater.from(getContext()).inflate(R.layout.aspect_ratio_element, parent, false);
 
             return new ResizeFactorViewHolder(resizeFactorElement, this);
 
@@ -77,51 +83,53 @@ public class ResizeFactorRecyclerView extends RecyclerView {
         @Override
         public void onBindViewHolder(ResizeFactorViewHolder viewHolder, int position) {
 
-            final ResizeFactor resizeFactor = mResizeFactors.get(position);
+            final AspectRatio aspectRatio = mAspectRatios.get(position);
 
-            final int width = getResources().getDimensionPixelSize(R.dimen.resize_factor_element_width);
+            final int width = getResources().getDimensionPixelSize(R.dimen.aspect_ratio_element_width);
             final int height = FrameLayout.LayoutParams.MATCH_PARENT;
             viewHolder.mLayout.setLayoutParams(new RecyclerView.LayoutParams(width, height));
 
-            drawElement(resizeFactor, viewHolder);
+            drawElement(aspectRatio, viewHolder);
 
 
         }
 
-        private void drawElement(final ResizeFactor resizeFactor, final ResizeFactorViewHolder viewHolder) {
-            if (isChosen(resizeFactor)) {
-                viewHolder.mLayout.setBackgroundColor(getResources().getColor(R.color.chosen_resize_factor_background));
-                viewHolder.mText.setTextColor(getResources().getColor(R.color.chosen_resize_factor_text_color));
+        private void drawElement(final AspectRatio aspectRatio, final ResizeFactorViewHolder viewHolder) {
+            if (isChosen(aspectRatio)) {
+                viewHolder.mLayout.setBackgroundColor(getResources().getColor(R.color.chosen_aspect_ratio_background));
+                viewHolder.mText.setTextColor(getResources().getColor(R.color.chosen_aspect_ratio_text_color));
 
 
             } else {
 
-                viewHolder.mLayout.setBackgroundColor(getResources().getColor(R.color.regular_resize_factor_background));
-                viewHolder.mText.setTextColor(getResources().getColor(R.color.regular_resize_factor_text_color));
+                viewHolder.mLayout.setBackgroundColor(getResources().getColor(R.color.regular_aspect_ratio_background));
+                viewHolder.mText.setTextColor(getResources().getColor(R.color.regular_aspect_ratio_text_color));
             }
 
-            viewHolder.mText.setText(resizeFactor.getName());
+            viewHolder.mText.setText(aspectRatio.getName());
         }
 
-        private boolean isChosen(final ResizeFactor resizeFactor) {
+        private boolean isChosen(final AspectRatio aspectRatio) {
 
-            return mChosenResizeFactor.equals(resizeFactor);
+            return mChosenAspectRatio.equals(aspectRatio);
         }
 
         @Override
         public int getItemCount() {
-            return mResizeFactors.size();
+            return mAspectRatios.size();
         }
 
         @Override
         public void onClickResizeFactor(View layout) {
-            final int oldResizeFactorPosition = mResizeFactors.indexOf(mChosenResizeFactor);
+            final int oldAspectRatioPosition = mAspectRatios.indexOf(mChosenAspectRatio);
 
-            final int newResizeFactorPosition = ResizeUtil.getPositionOfChild(layout, R.id.resize_factor_layout, ResizeFactorRecyclerView.this);
-            mChosenResizeFactor = mResizeFactors.get(newResizeFactorPosition);
+            final int newAspectRatioPosition = ResizeUtil.getPositionOfChild(layout, R.id.resize_factor_layout, AspectRatioRecyclerView.this);
+            mChosenAspectRatio = mAspectRatios.get(newAspectRatioPosition);
 
-            notifyItemChanged(oldResizeFactorPosition);
-            notifyItemChanged(newResizeFactorPosition);
+            notifyItemChanged(oldAspectRatioPosition);
+            notifyItemChanged(newAspectRatioPosition);
+
+            mResizeLayout.setAspectRatio(mChosenAspectRatio);
 
         }
     }

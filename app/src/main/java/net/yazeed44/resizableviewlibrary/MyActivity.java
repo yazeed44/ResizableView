@@ -34,6 +34,10 @@ public class MyActivity extends Activity {
         mResizeLayout.setTranslationY(600);
 
 
+        final AspectRatioRecyclerView aspectRatioRecyclerView = (AspectRatioRecyclerView) findViewById(R.id.resize_factor_recycler);
+        aspectRatioRecyclerView.attachToResizeLayout(mResizeLayout);
+
+
     }
 
     @Override

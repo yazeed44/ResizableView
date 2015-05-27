@@ -16,24 +16,24 @@ public final class ResizeUtil {
     }
 
 
-    public static ArrayList<ResizeFactor> getResizeFactors(final Context context) {
+    public static ArrayList<AspectRatio> getResizeFactors(final Context context) {
 
-        final ArrayList<ResizeFactor> resizeFactors = new ArrayList<>();
-
-
-        final ResizeFactor free = new ResizeFactor();
-
-        free.setName(context.getResources().getString(R.string.free_resize_factor_name));
-        resizeFactors.add(free);
-
-        resizeFactors.add(new ResizeFactor(1, 1));
-        resizeFactors.add(new ResizeFactor(4, 3));
-        resizeFactors.add(new ResizeFactor(3, 4));
-        resizeFactors.add(new ResizeFactor(3, 2));
-        resizeFactors.add(new ResizeFactor(16, 9));
+        final ArrayList<AspectRatio> aspectRatios = new ArrayList<>();
 
 
-        return resizeFactors;
+        final AspectRatio free = new AspectRatio();
+
+        free.setName(context.getResources().getString(R.string.free_aspect_ratio_name));
+        aspectRatios.add(free);
+
+        aspectRatios.add(new AspectRatio(1, 1));
+        aspectRatios.add(new AspectRatio(4, 3));
+        aspectRatios.add(new AspectRatio(3, 4));
+        aspectRatios.add(new AspectRatio(3, 2));
+        aspectRatios.add(new AspectRatio(16, 9));
+
+
+        return aspectRatios;
     }
 
     public static int getPositionOfChild(final View child, final int childParentId, final RecyclerView recyclerView) {

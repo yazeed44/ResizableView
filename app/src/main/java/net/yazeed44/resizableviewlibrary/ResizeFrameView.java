@@ -53,6 +53,8 @@ abstract class ResizeFrameView extends FrameLayout {
     }
 
     private static boolean isTouchEventContained(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
+
+        //TODO Fix bug where the view scale is < 0 then it became unable to detect
         final int[] xy = new int[2];
         resizableViewLayout.getLocationOnScreen(xy);
 

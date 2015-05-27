@@ -3,7 +3,7 @@
     android:id="@+id/resize_factor_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/chosen_resize_factor_background"
+    android:background="@color/chosen_aspect_ratio_background"
     android:orientation="vertical">
 
 
@@ -14,6 +14,6 @@
         android:layout_margin="2dp"
         android:gravity="center"
         android:text="1:1"
-        android:textColor="@color/chosen_resize_factor_text_color"
-        android:textSize="@dimen/resize_factor_text_size" />
+        android:textColor="@color/chosen_aspect_ratio_text_color"
+        android:textSize="@dimen/aspect_ratio_text_size" />
 </LinearLayout>

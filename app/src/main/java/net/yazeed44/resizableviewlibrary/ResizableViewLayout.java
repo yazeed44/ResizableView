@@ -1,6 +1,7 @@
 package net.yazeed44.resizableviewlibrary;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -25,6 +26,7 @@ public class ResizableViewLayout extends ResizeFrameView {
     private float mFocusY = 0.f;
     private float mAngle = 0;
     private float mMaxScaleFactor = 3;
+    private AspectRatio mChosenAspectRatio;
 
 
     public ResizableViewLayout(Context context) {
@@ -86,18 +88,13 @@ public class ResizableViewLayout extends ResizeFrameView {
         final int[] xy = new int[2];
         getLocationOnScreen(xy);
 
-        final float newWidth = (getWidth() * mScaleXFactor) + (xy[0] - shapeEvent.getRawX());
+        float newWidth = (getWidth() * mScaleXFactor) + (xy[0] - shapeEvent.getRawX());
 
+        resize(newWidth, getHeightWithScale());
 
-        final float scaleX = (newWidth / (float) getWidth());
-
-
-        mScaleXFactor = scaleX;
-
-
-        setScaleX(mScaleXFactor);
 
     }
+
 
     private void drag2(final MotionEvent shapeEvent) {
 
@@ -108,11 +105,8 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         final float newWidth = shapeEvent.getRawX() - xy[0];
 
-        final float scaleX = newWidth / (float) getWidth();
 
-        mScaleXFactor = scaleX;
-
-        setScaleX(scaleX);
+        resize(newWidth, getHeightWithScale());
     }
 
 
@@ -124,11 +118,7 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         final float newHeight = (getHeight() * mScaleYFactor) + (xy[1] - shapeEvent.getRawY());
 
-        final float scaleY = newHeight / (float) getHeight();
-
-        mScaleYFactor = scaleY;
-
-        setScaleY(mScaleYFactor);
+        resize(getWidthWithScale(), newHeight);
     }
 
 
@@ -140,17 +130,28 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         final float newHeight = shapeEvent.getRawY() - xy[1];
 
-        final float scaleY = newHeight / (float) getHeight();
-
-        mScaleYFactor = scaleY;
-
-        setScaleY(scaleY);
+        resize(getWidthWithScale(), newHeight);
 
 
     }
 
     private void assignShapeId(final View view) {
         mShapeId = ((ResizeShapeView) view).getShapeId();
+
+    }
+
+    private void resize(final float newWidth, final float newHeight) {
+
+        final Point newDimension = mChosenAspectRatio.calculateDimension(getWidthWithScale(), getHeightWithScale(), Math.round(newWidth), Math.round(newHeight));
+        Log.d(TAG, "New dimension    " + newDimension);
+        final int width = newDimension.x;
+        final int height = newDimension.y;
+
+        mScaleXFactor = (width / (float) getWidth());
+        mScaleYFactor = (height / (float) getHeight());
+
+        setScaleX(mScaleXFactor);
+        setScaleY(mScaleYFactor);
 
     }
 
@@ -295,6 +296,13 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
     }
 
+    public void setAspectRatio(AspectRatio newAspectRatio) {
+        mChosenAspectRatio = newAspectRatio;
+
+        if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
+            resize(getWidthWithScale(), getHeightWithScale());
+    }
+
 
     private class ScaleViewListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
@@ -313,8 +321,10 @@ public class ResizableViewLayout extends ResizeFrameView {
             mScaleXFactor *= detector.getScaleFactor();
             mScaleYFactor *= detector.getScaleFactor();
 
-            setScaleX(mScaleXFactor);
-            setScaleY(mScaleYFactor);
+            resize(getWidth() * mScaleXFactor, getHeight() * mScaleYFactor);
+
+            // setScaleX(mScaleXFactor);
+            // setScaleY(mScaleYFactor);
 
 
             Log.d("ScaleListener", "Scale factor , x  " + mScaleXFactor + "  , y  " + mScaleYFactor);
