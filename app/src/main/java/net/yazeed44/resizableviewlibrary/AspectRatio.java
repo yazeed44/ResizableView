@@ -32,16 +32,10 @@ public class AspectRatio {
 
     public Point calculateDimension(final Point baseDimension, final Point newDimension) {
 
-        //TODO Calculate dimension
 
         if (mWidthRatio == -1 && mHeightRatio == -1) {
             return newDimension;
         }
-
-        /*else if (mWidthRatio == 1 && mHeightRatio == 1){
-            final int average = (baseDimension.x + baseDimension.y) / 2;
-            return new Point(average,average);
-        }*/
 
 
         if (baseDimension.x != newDimension.x) {
@@ -72,5 +66,13 @@ public class AspectRatio {
 
     public float getRatio() {
         return (float) mWidthRatio / (float) mHeightRatio;
+    }
+
+    public int getWidthRatio() {
+        return mWidthRatio;
+    }
+
+    public int getHeightRatio() {
+        return mHeightRatio;
     }
 }

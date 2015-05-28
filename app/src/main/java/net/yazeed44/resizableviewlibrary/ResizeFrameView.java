@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -54,16 +55,10 @@ abstract class ResizeFrameView extends FrameLayout {
 
     private static boolean isTouchEventContained(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
 
-        //TODO Fix bug where the view scale is < 0 then it became unable to detect
-        final int[] xy = new int[2];
-        resizableViewLayout.getLocationOnScreen(xy);
+        final Rect viewRect = new Rect();
+        resizableViewLayout.getGlobalVisibleRect(viewRect);
 
-        final boolean containX = event.getRawX() >= (xy[0]) && event.getRawX() <= (resizableViewLayout.getWidthWithScale() + xy[0]);
-
-        final boolean containY = event.getRawY() >= (xy[1]) && event.getRawY() <= (resizableViewLayout.getHeightWithScale() + xy[1]);
-
-        return containX && containY;
-
+        return viewRect.contains(Math.round(event.getRawX()), Math.round(event.getRawY()));
 
     }
 

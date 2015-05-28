@@ -317,6 +317,7 @@ public class ResizableViewLayout extends ResizeFrameView {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
 
+            //TODO Improve scale gesture (Makes it more smooth)
 
             mScaleXFactor *= detector.getScaleFactor();
             mScaleYFactor *= detector.getScaleFactor();

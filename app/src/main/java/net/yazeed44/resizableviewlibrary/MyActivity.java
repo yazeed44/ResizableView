@@ -42,6 +42,8 @@ public class MyActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+
+
         ResizableViewLayout.handleDispatchTouchEvent(ev, mResizeLayout);
         return super.dispatchTouchEvent(ev);
     }
