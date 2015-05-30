@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import com.almeros.android.multitouch.MoveGestureDetector;
 
@@ -27,6 +28,8 @@ public class ResizableViewLayout extends ResizeFrameView {
     private float mAngle = 0;
     private float mMaxScaleFactor = 3;
     private AspectRatio mChosenAspectRatio;
+    private int xDelta;
+    private int yDelta;
 
 
     public ResizableViewLayout(Context context) {
@@ -208,30 +211,45 @@ public class ResizableViewLayout extends ResizeFrameView {
             public boolean onTouch(View v, MotionEvent event) {
 
 
-                mScaleDetector.onTouchEvent(event);
+                // mScaleDetector.onTouchEvent(event);
                 // mRotateDetector.onTouchEvent(event);
 
 
-                mMoveDetector.onTouchEvent(event);
-                display();
+                // mScaleDetector.onTouchEvent(event);
+                //mMoveDetector.onTouchEvent(event);
 
+                // display();
+
+                final int X = (int) event.getRawX();
+                final int Y = (int) event.getRawY();
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) getLayoutParams();
+                        xDelta = X - lParams.leftMargin;
+                        yDelta = Y - lParams.topMargin;
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        break;
+                    case MotionEvent.ACTION_POINTER_DOWN:
+                        break;
+                    case MotionEvent.ACTION_POINTER_UP:
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
+                        layoutParams.leftMargin = X - xDelta;
+                        layoutParams.topMargin = Y - yDelta;
+                        layoutParams.rightMargin = -250;
+                        layoutParams.bottomMargin = -250;
+                        setLayoutParams(layoutParams);
+                        break;
+                }
 
                 return true;
             }
         };
     }
 
-    private void display() {
 
-
-        setTranslationX(getTranslationX() + mFocusX);
-        setTranslationY(getTranslationY() + mFocusY);
-
-
-        //TODO Implement rotating view by two finger gesture
-
-
-    }
 
 
     @Override
@@ -240,14 +258,17 @@ public class ResizableViewLayout extends ResizeFrameView {
         if (scaleX < -mMaxScaleFactor) {
             mScaleXFactor = -mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
+            Log.d(TAG, "New scale x   " + mScaleXFactor);
             return;
         } else if (mScaleXFactor > mMaxScaleFactor) {
             mScaleXFactor = mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
+            Log.d(TAG, "New scale x   " + mScaleXFactor);
             return;
         }
 
         super.setScaleX(scaleX);
+        Log.d(TAG, "New scale x   " + mScaleXFactor);
     }
 
     @Override
@@ -256,19 +277,30 @@ public class ResizableViewLayout extends ResizeFrameView {
         if (mScaleYFactor < -mMaxScaleFactor) {
             mScaleYFactor = -mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
+            Log.d(TAG, "New scale y   " + mScaleYFactor);
             return;
         } else if (mScaleYFactor > mMaxScaleFactor) {
             mScaleYFactor = mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
+            Log.d(TAG, "New scale y   " + mScaleYFactor);
             return;
         }
 
         super.setScaleY(scaleY);
+        Log.d(TAG, "New scale y   " + mScaleYFactor);
     }
 
 
     public void setMaxScaleFactor(final float scaleFactor) {
         mMaxScaleFactor = scaleFactor;
+    }
+
+    public int getWidthWithScale() {
+        return Math.round(getWidth() * mScaleXFactor);
+    }
+
+    public int getHeightWithScale() {
+        return Math.round(getHeight() * mScaleYFactor);
     }
 
     @Override
@@ -286,6 +318,13 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
     }
 
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+
+        return super.dispatchTouchEvent(ev);
+    }
+
     @Override
     public OnTouchListener createRotateListener() {
         return new OnTouchListener() {
@@ -296,7 +335,7 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
     }
 
-    public void setAspectRatio(AspectRatio newAspectRatio) {
+    public void setAspectRatio(final AspectRatio newAspectRatio) {
         mChosenAspectRatio = newAspectRatio;
 
         if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
@@ -305,14 +344,14 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
     private class ScaleViewListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
+       /* @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
 
             setPivotX(detector.getFocusX());
             setPivotY(detector.getFocusY());
 
             return super.onScaleBegin(detector);
-        }
+        }*/
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
@@ -323,15 +362,14 @@ public class ResizableViewLayout extends ResizeFrameView {
             mScaleYFactor *= detector.getScaleFactor();
 
             resize(getWidth() * mScaleXFactor, getHeight() * mScaleYFactor);
-
-            // setScaleX(mScaleXFactor);
-            // setScaleY(mScaleYFactor);
-
-
-            Log.d("ScaleListener", "Scale factor , x  " + mScaleXFactor + "  , y  " + mScaleYFactor);
             return true;
         }
 
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            super.onScaleEnd(detector);
+
+        }
     }
 
     private class MoveViewListener extends MoveGestureDetector.SimpleOnMoveGestureListener {
@@ -348,13 +386,13 @@ public class ResizableViewLayout extends ResizeFrameView {
                 return true;
             }
 
-            if (mScaleXFactor < 0) {
+            if (mScaleXFactor < 0.0) {
                 mFocusX -= delta.x;
             } else {
                 mFocusX += delta.x;
             }
 
-            if (mScaleYFactor < 0) {
+            if (mScaleYFactor < 0.0) {
                 mFocusY -= delta.y;
             } else {
                 mFocusY += delta.y;
@@ -362,10 +400,10 @@ public class ResizableViewLayout extends ResizeFrameView {
 
 
 
-
-
             Log.d(TAG, "New focus , x : " + mFocusX + "  ,  y : " + mFocusY);
 
+            setX(getX() + mFocusX);
+            setY(getY() + mFocusY);
 
             return true;
         }

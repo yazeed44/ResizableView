@@ -201,13 +201,7 @@ abstract class ResizeFrameView extends FrameLayout {
         }
     }
 
-    public int getWidthWithScale() {
-        return Math.round(getWidth() * getScaleX());
-    }
 
-    public int getHeightWithScale() {
-        return Math.round(getHeight() * getScaleY());
-    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {

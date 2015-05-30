@@ -5,7 +5,7 @@ android {
     buildToolsVersion '21.1.2'
 
     defaultConfig {
-        applicationId "net.yazeed44.resizeableviewlibary"
+        applicationId "net.yazeed44.resizeableviewlibrary"
         minSdkVersion 11
         targetSdkVersion 22
         versionCode 1
