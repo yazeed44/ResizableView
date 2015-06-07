@@ -22,6 +22,7 @@ public class AspectRatio {
 
     }
 
+
     public String getName() {
         return mName;
     }
@@ -42,12 +43,16 @@ public class AspectRatio {
             //The width is changing values
             final int newHeight = Math.round((float) newDimension.x / getRatio());
             return new Point(newDimension.x, newHeight);
-        } else {
+
+        } else if (baseDimension.y != newDimension.y) {
             //The height is changing values
             final int newWidth = Math.round((float) newDimension.y * getRatio());
             return new Point(newWidth, newDimension.y);
-        }
+        } else {
+            final int average = Math.round((newDimension.x + newDimension.y) / 2);
 
+            return new Point(average, average);
+        }
 
 
     }

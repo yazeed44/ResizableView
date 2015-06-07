@@ -4,12 +4,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -24,7 +21,7 @@ import java.util.ArrayList;
  */
 abstract class ResizeFrameView extends FrameLayout {
 
-    protected ArrayList<ResizeShapeView> mResizeShapes = new ArrayList<>();
+    protected ArrayList<ResizeShapeView> mResizeShapes = new ArrayList<>(4);
     // array that holds the balls
     protected int mShapeId = 0;
     protected View mResizableView;
@@ -46,22 +43,6 @@ abstract class ResizeFrameView extends FrameLayout {
         super(context, set, defStyle);
     }
 
-    public static void handleDispatchTouchEvent(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
-
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            resizableViewLayout.setFrameVisibility(isTouchEventContained(event, resizableViewLayout));
-        }
-    }
-
-    private static boolean isTouchEventContained(final MotionEvent event, final ResizableViewLayout resizableViewLayout) {
-
-        final Rect viewRect = new Rect();
-        resizableViewLayout.getGlobalVisibleRect(viewRect);
-
-        return viewRect.contains(Math.round(event.getRawX()), Math.round(event.getRawY()));
-
-    }
-
     public void setResizableView(final View resizableView) {
         initFrame(resizableView);
     }
@@ -73,7 +54,7 @@ abstract class ResizeFrameView extends FrameLayout {
         setWillNotDraw(false);
         initShapeBitmap();
         initPaint();
-        createNestedLayout();
+        addResizableViewToLayout();
 
     }
 
@@ -88,7 +69,7 @@ abstract class ResizeFrameView extends FrameLayout {
         mFramePaint.setStrokeCap(Paint.Cap.SQUARE);
     }
 
-    private void createNestedLayout() {
+    private void addResizableViewToLayout() {
 
 
         final LinearLayout nestedFrameLayout = new LinearLayout(getContext());
@@ -111,20 +92,7 @@ abstract class ResizeFrameView extends FrameLayout {
 
         final Drawable resizeBallDrawable = getResources().getDrawable(R.drawable.resize_shape);
 
-        mResizeShapeBitmap = castToBitmap(resizeBallDrawable);
-    }
-
-    private Bitmap castToBitmap(final Drawable drawable) {
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable) drawable).getBitmap();
-        }
-
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        final Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
+        mResizeShapeBitmap = ResizeUtil.castToBitmap(resizeBallDrawable);
     }
 
     private void initStretchView() {
@@ -137,7 +105,7 @@ abstract class ResizeFrameView extends FrameLayout {
         mStretchView.setBackgroundResource(R.drawable.stretch_shape_background);
         mStretchView.setOnTouchListener(createStretchListener());
 
-        final int stretchGravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT | Gravity.BOTTOM;
+        final int stretchGravity = Gravity.RIGHT | Gravity.BOTTOM;
         final LayoutParams stretchViewLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, stretchGravity);
 
         addView(mStretchView, stretchViewLayoutParams);
@@ -165,7 +133,7 @@ abstract class ResizeFrameView extends FrameLayout {
         mRotateView.setBackgroundResource(R.drawable.stretch_shape_background);
         mRotateView.setOnTouchListener(createRotateListener());
 
-        final int rotateViewGravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT | Gravity.TOP;
+        final int rotateViewGravity = Gravity.RIGHT | Gravity.TOP;
         final LayoutParams rotateViewLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, rotateViewGravity);
 
         addView(mRotateView, rotateViewLayoutParams);
@@ -183,8 +151,10 @@ abstract class ResizeFrameView extends FrameLayout {
 
         final int width = mResizeShapeBitmap.getWidth(), height = mResizeShapeBitmap.getHeight();
 
+
         for (final int position : positions) {
-            final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, position);
+            final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.gravity = position;
 
             final ResizeShapeView resizeShapeView = new ResizeShapeView(getContext());
             resizeShapeView.setImageBitmap(mResizeShapeBitmap);
@@ -193,8 +163,6 @@ abstract class ResizeFrameView extends FrameLayout {
             resizeShapeView.setClickable(true);
             resizeShapeView.setPadding(width / 2, height / 2, width / 2, height / 2);
             addView(resizeShapeView, params);
-
-
 
             mResizeShapes.add(resizeShapeView);
 
@@ -213,7 +181,22 @@ abstract class ResizeFrameView extends FrameLayout {
 
     public void setFrameVisibility(final boolean frameVisibility) {
         mShouldDrawFrame = frameVisibility;
+        redrawFrame();
+    }
+
+    private void redrawFrame() {
         invalidate();
+
+        if (mShouldDrawFrame) {
+            showResizeShapes();
+            mRotateView.setVisibility(VISIBLE);
+            mStretchView.setVisibility(VISIBLE);
+
+        } else {
+            hideResizeShapes();
+            mRotateView.setVisibility(INVISIBLE);
+            mStretchView.setVisibility(INVISIBLE);
+        }
     }
 
     @Override
@@ -221,18 +204,9 @@ abstract class ResizeFrameView extends FrameLayout {
         super.onDraw(canvas);
 
         if (!mShouldDrawFrame) {
-
-            hideResizeShapes();
-            mRotateView.setVisibility(INVISIBLE);
-            mStretchView.setVisibility(INVISIBLE);
-
             return;
         }
 
-
-        showResizeShapes();
-        mRotateView.setVisibility(VISIBLE);
-        mStretchView.setVisibility(VISIBLE);
 
         final View resizableViewParent = (View) mResizableView.getParent();
 

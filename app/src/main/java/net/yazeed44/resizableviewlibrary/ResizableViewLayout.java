@@ -6,11 +6,10 @@ import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.almeros.android.multitouch.MoveGestureDetector;
+import java.util.ArrayList;
 
 /**
  * Created by yazeed44 on 10/11/14.
@@ -18,18 +17,21 @@ import com.almeros.android.multitouch.MoveGestureDetector;
 public class ResizableViewLayout extends ResizeFrameView {
 
     public static final String TAG = ResizableViewLayout.class.getSimpleName();
-
+    private final ArrayList<Integer> mThirtyMultiples = new ArrayList<>();
     private float mScaleXFactor = 1.0f;
     private float mScaleYFactor = 1.0f;
-    private ScaleGestureDetector mScaleDetector;
-    private MoveGestureDetector mMoveDetector;
-    private float mFocusX = 0.f;
-    private float mFocusY = 0.f;
-    private float mAngle = 0;
     private float mMaxScaleFactor = 3;
     private AspectRatio mChosenAspectRatio;
     private int xDelta;
     private int yDelta;
+    private PointF mPushPoint;
+    private double mLastComAngle;
+    private Point mViewCenter;
+    private double mLastImgAngle;
+    private LayoutParams mRotateLayoutParams;
+    private float mLastX = -1;
+    private float mLastY = -1;
+
 
 
     public ResizableViewLayout(Context context) {
@@ -52,11 +54,18 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private void init() {
 
+        generateThirtyMultiples();
 
-        mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleViewListener());
-        mMoveDetector = new MoveGestureDetector(getContext(), new MoveViewListener());
+    }
 
+    private void generateThirtyMultiples() {
 
+        for (int i = -360; i >= -360 && i <= 360; i++) {
+            if (i % 10 == 0) {
+                mThirtyMultiples.add(i);
+            }
+
+        }
     }
 
     private void onDraggingShape(final MotionEvent shapeMotionEvent) {
@@ -153,6 +162,9 @@ public class ResizableViewLayout extends ResizeFrameView {
         mScaleXFactor = (width / (float) getWidth());
         mScaleYFactor = (height / (float) getHeight());
 
+
+        setPivotX(getWidth() / 2);
+        setPivotY(getHeight() / 2);
         setScaleX(mScaleXFactor);
         setScaleY(mScaleYFactor);
 
@@ -211,33 +223,19 @@ public class ResizableViewLayout extends ResizeFrameView {
             public boolean onTouch(View v, MotionEvent event) {
 
 
-                // mScaleDetector.onTouchEvent(event);
-                // mRotateDetector.onTouchEvent(event);
-
-
-                // mScaleDetector.onTouchEvent(event);
-                //mMoveDetector.onTouchEvent(event);
-
-                // display();
-
-                final int X = (int) event.getRawX();
-                final int Y = (int) event.getRawY();
+                final int x = (int) event.getRawX();
+                final int y = (int) event.getRawY();
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) getLayoutParams();
-                        xDelta = X - lParams.leftMargin;
-                        yDelta = Y - lParams.topMargin;
+                        xDelta = x - lParams.leftMargin;
+                        yDelta = y - lParams.topMargin;
                         break;
-                    case MotionEvent.ACTION_UP:
-                        break;
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        break;
-                    case MotionEvent.ACTION_POINTER_UP:
-                        break;
+
                     case MotionEvent.ACTION_MOVE:
                         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
-                        layoutParams.leftMargin = X - xDelta;
-                        layoutParams.topMargin = Y - yDelta;
+                        layoutParams.leftMargin = x - xDelta;
+                        layoutParams.topMargin = y - yDelta;
                         layoutParams.rightMargin = -250;
                         layoutParams.bottomMargin = -250;
                         setLayoutParams(layoutParams);
@@ -290,6 +288,26 @@ public class ResizableViewLayout extends ResizeFrameView {
         Log.d(TAG, "New scale y   " + mScaleYFactor);
     }
 
+    @Override
+    public void setRotation(float rotation) {
+        final float calculatedRotation = Math.round(rotation);
+        super.setRotation(rotation);
+        Log.d(TAG, "New rotation  " + calculatedRotation);
+    }
+
+    private float roundUpToClosetThirtyMultiplier(final float rotation) {
+        float lowestDiff = Float.MAX_VALUE;
+        float result = 0;
+        for (final int i : mThirtyMultiples) {
+            float diff = Math.abs(rotation - i); // use API to get absolute diff
+            if (diff < lowestDiff) {
+                lowestDiff = diff;
+                result = i;
+            }
+        }
+        return result;
+
+    }
 
     public void setMaxScaleFactor(final float scaleFactor) {
         mMaxScaleFactor = scaleFactor;
@@ -318,97 +336,97 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
     }
 
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-
-        return super.dispatchTouchEvent(ev);
-    }
-
     @Override
     public OnTouchListener createRotateListener() {
         return new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return false;
+
+
+                switch (event.getAction() & event.getActionMasked()) {
+
+                    case MotionEvent.ACTION_DOWN:
+
+                        mRotateLayoutParams = (LayoutParams) mRotateView.getLayoutParams();
+                        mPushPoint = getPushPoint(mRotateLayoutParams, event);
+                        mLastX = event.getRawX();
+                        mLastY = event.getRawY();
+                        mLastImgAngle = getRotation();
+                        refreshImageCenter();
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float rawX = event.getRawX();
+                        float rawY = event.getRawY();
+                        if (mLastX != -1) {
+                            if (Math.abs(rawX - mLastX) < 5 && Math.abs(rawY - mLastY) < 5) {
+                                return false;
+                            }
+                        }
+                        mLastX = rawX;
+                        mLastY = rawY;
+
+                        Point O = mViewCenter;
+                        PointF A = mPushPoint, B = getPushPoint(mRotateLayoutParams, event);
+                        float dOA = getDistance(O, A);
+                        float dOB = getDistance(O, B);
+                        float f = dOB / dOA;
+
+                        float fz = (((A.x - O.x) * (B.x - O.x)) + ((A.y - O.y) * (B.y - O.y)));
+                        float fm = dOA * dOB;
+                        double comAngle = (180 * Math.acos(fz / fm) / Math.PI);
+                        if (Double.isNaN(comAngle)) {
+                            comAngle = (mLastComAngle < 90 || mLastComAngle > 270) ? 0 : 180;
+                        } else if ((B.y - O.y) * (A.x - O.x) < (A.y - O.y) * (B.x - O.x)) {
+                            comAngle = 360 - comAngle;
+                        }
+                        mLastComAngle = comAngle;
+
+                        float angle = (float) (mLastImgAngle + comAngle);
+                        angle = angle % 360;
+                        setRotation(angle);
+
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+
+                        break;
+
+                }
+
+                return true;
             }
         };
     }
+
+
+    private void refreshImageCenter() {
+
+        final int[] xy = new int[2];
+        getLocationOnScreen(xy);
+
+        int x = xy[0] + getWidth() / 2;
+        int y = xy[1] + getHeight() / 2;
+
+        mViewCenter = new Point(x, y);
+    }
+
+
+    private PointF getPushPoint(FrameLayout.LayoutParams lp, MotionEvent event) {
+        return new PointF(event.getRawX(), event.getRawY());
+    }
+
+    private float getDistance(Point a, PointF b) {
+        float v = ((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y));
+        return (float) (((Math.sqrt(v))));
+    }
+
 
     public void setAspectRatio(final AspectRatio newAspectRatio) {
         mChosenAspectRatio = newAspectRatio;
 
         if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
             resize(getWidthWithScale(), getHeightWithScale());
-    }
-
-
-    private class ScaleViewListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-       /* @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
-
-            setPivotX(detector.getFocusX());
-            setPivotY(detector.getFocusY());
-
-            return super.onScaleBegin(detector);
-        }*/
-
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-
-            //TODO Improve scale gesture (Makes it more smooth)
-
-            mScaleXFactor *= detector.getScaleFactor();
-            mScaleYFactor *= detector.getScaleFactor();
-
-            resize(getWidth() * mScaleXFactor, getHeight() * mScaleYFactor);
-            return true;
-        }
-
-        @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
-            super.onScaleEnd(detector);
-
-        }
-    }
-
-    private class MoveViewListener extends MoveGestureDetector.SimpleOnMoveGestureListener {
-        @Override
-        public boolean onMove(MoveGestureDetector detector) {
-
-            final PointF delta = detector.getFocusDelta();
-
-            if (mFocusX == 0.0 && mFocusY == 0.0) {
-                //This is supposed to be the first move event
-                //In the first move event the value of delta will be so big since there's no past events , so we will skip the first event
-                mFocusX = 0.1f;
-                mFocusY = 0.1f;
-                return true;
-            }
-
-            if (mScaleXFactor < 0.0) {
-                mFocusX -= delta.x;
-            } else {
-                mFocusX += delta.x;
-            }
-
-            if (mScaleYFactor < 0.0) {
-                mFocusY -= delta.y;
-            } else {
-                mFocusY += delta.y;
-            }
-
-
-
-            Log.d(TAG, "New focus , x : " + mFocusX + "  ,  y : " + mFocusY);
-
-            setX(getX() + mFocusX);
-            setY(getY() + mFocusY);
-
-            return true;
-        }
-
-
     }
 
 

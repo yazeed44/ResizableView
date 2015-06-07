@@ -30,8 +30,6 @@ public class MyActivity extends Activity {
         addContentView(mResizeLayout, params);
 
         mResizeLayout.setLayoutParams(new FrameLayout.LayoutParams(600, 600));
-        mResizeLayout.setTranslationX(400);
-        mResizeLayout.setTranslationY(600);
 
 
         final AspectRatioRecyclerView aspectRatioRecyclerView = (AspectRatioRecyclerView) findViewById(R.id.resize_factor_recycler);
@@ -44,7 +42,7 @@ public class MyActivity extends Activity {
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
 
-        ResizableViewLayout.handleDispatchTouchEvent(ev, mResizeLayout);
+        ResizeUtil.handleDispatchTouchEvent(ev, mResizeLayout);
         return super.dispatchTouchEvent(ev);
     }
 
