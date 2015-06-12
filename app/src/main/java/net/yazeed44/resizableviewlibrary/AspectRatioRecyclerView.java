@@ -54,7 +54,7 @@ public class AspectRatioRecyclerView extends RecyclerView {
 
         addItemDecoration(new SpacesItemDecoration(spacingInPixels));
         setLayoutManager(gridLayoutManager);
-        setAdapter(new ResizeFactorAdapter());
+        setAdapter(new AspectRatioAdapter());
         setBackgroundColor(Color.GRAY);
 
 
@@ -66,22 +66,22 @@ public class AspectRatioRecyclerView extends RecyclerView {
 
     }
 
-    private interface OnClickResizeFactor {
-        void onClickResizeFactor(View layout);
+    private interface onClickAspectRatio {
+        void onClickAspectRatio(View layout);
     }
 
-    private class ResizeFactorAdapter extends Adapter<ResizeFactorViewHolder> implements OnClickResizeFactor {
+    private class AspectRatioAdapter extends Adapter<AspectRatioViewHolder> implements onClickAspectRatio {
         @Override
-        public ResizeFactorViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public AspectRatioViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-            final View resizeFactorElement = LayoutInflater.from(getContext()).inflate(R.layout.aspect_ratio_element, parent, false);
+            final View aspectFactorElement = LayoutInflater.from(getContext()).inflate(R.layout.aspect_ratio_element, parent, false);
 
-            return new ResizeFactorViewHolder(resizeFactorElement, this);
+            return new AspectRatioViewHolder(aspectFactorElement, this);
 
         }
 
         @Override
-        public void onBindViewHolder(ResizeFactorViewHolder viewHolder, int position) {
+        public void onBindViewHolder(AspectRatioViewHolder viewHolder, int position) {
 
             final AspectRatio aspectRatio = mAspectRatios.get(position);
 
@@ -91,10 +91,11 @@ public class AspectRatioRecyclerView extends RecyclerView {
 
             drawElement(aspectRatio, viewHolder);
 
+            //TODO Draw rectangle as background
 
         }
 
-        private void drawElement(final AspectRatio aspectRatio, final ResizeFactorViewHolder viewHolder) {
+        private void drawElement(final AspectRatio aspectRatio, final AspectRatioViewHolder viewHolder) {
             if (isChosen(aspectRatio)) {
                 viewHolder.mLayout.setBackgroundColor(getResources().getColor(R.color.chosen_aspect_ratio_background));
                 viewHolder.mText.setTextColor(getResources().getColor(R.color.chosen_aspect_ratio_text_color));
@@ -120,10 +121,10 @@ public class AspectRatioRecyclerView extends RecyclerView {
         }
 
         @Override
-        public void onClickResizeFactor(View layout) {
+        public void onClickAspectRatio(View layout) {
             final int oldAspectRatioPosition = mAspectRatios.indexOf(mChosenAspectRatio);
 
-            final int newAspectRatioPosition = ResizeUtil.getPositionOfChild(layout, R.id.resize_factor_layout, AspectRatioRecyclerView.this);
+            final int newAspectRatioPosition = ResizeUtil.getPositionOfChild(layout, R.id.aspect_ratio_layout, AspectRatioRecyclerView.this);
             mChosenAspectRatio = mAspectRatios.get(newAspectRatioPosition);
 
             notifyItemChanged(oldAspectRatioPosition);
@@ -134,24 +135,24 @@ public class AspectRatioRecyclerView extends RecyclerView {
         }
     }
 
-    private class ResizeFactorViewHolder extends ViewHolder {
+    private class AspectRatioViewHolder extends ViewHolder {
 
         private LinearLayout mLayout;
         private TextView mText;
 
-        private OnClickResizeFactor mListener;
+        private onClickAspectRatio mListener;
 
-        public ResizeFactorViewHolder(View itemView, final OnClickResizeFactor listener) {
+        public AspectRatioViewHolder(View itemView, final onClickAspectRatio listener) {
             super(itemView);
 
-            mText = (TextView) itemView.findViewById(R.id.resize_factor_text);
-            mLayout = (LinearLayout) itemView.findViewById(R.id.resize_factor_layout);
+            mText = (TextView) itemView.findViewById(R.id.aspect_ratio_text);
+            mLayout = (LinearLayout) itemView.findViewById(R.id.aspect_ratio_layout);
             mListener = listener;
 
             mLayout.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.onClickResizeFactor(v);
+                    mListener.onClickAspectRatio(v);
                 }
             });
         }

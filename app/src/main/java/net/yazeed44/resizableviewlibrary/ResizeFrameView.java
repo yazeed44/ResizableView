@@ -28,8 +28,12 @@ abstract class ResizeFrameView extends FrameLayout {
     protected ImageView mStretchView;
     protected ImageView mRotateView;
     protected boolean mShouldDrawFrame = true;
+    protected float mRotation = 0;
+    protected float mScaleXFactor = 1.0f;
+    protected float mScaleYFactor = 1.0f;
     private Bitmap mResizeShapeBitmap;
     private Paint mFramePaint;
+    private int mScreenWidth = 0, mScreenHeight = 0;
 
     public ResizeFrameView(final Context context) {
         super(context);
@@ -50,7 +54,6 @@ abstract class ResizeFrameView extends FrameLayout {
     private void initFrame(final View resizableView) {
         this.mResizableView = resizableView;
         mResizableView.setOnTouchListener(createResizableViewListener());
-
         setWillNotDraw(false);
         initShapeBitmap();
         initPaint();
@@ -61,7 +64,6 @@ abstract class ResizeFrameView extends FrameLayout {
     private void initPaint() {
         mFramePaint = new Paint();
         mFramePaint.setColor(getResources().getColor(R.color.frame_background_line));
-        //mFramePaint.setAlpha(100);
         mFramePaint.setAntiAlias(true);
         mFramePaint.setDither(true);
         mFramePaint.setStyle(Paint.Style.STROKE);
@@ -70,7 +72,6 @@ abstract class ResizeFrameView extends FrameLayout {
     }
 
     private void addResizableViewToLayout() {
-
 
         final LinearLayout nestedFrameLayout = new LinearLayout(getContext());
         nestedFrameLayout.setOrientation(LinearLayout.VERTICAL);
@@ -174,6 +175,8 @@ abstract class ResizeFrameView extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        mScreenHeight = h;
+        mScreenWidth = w;
         initShapes();
         initStretchView();
         initRotateView();
@@ -202,7 +205,6 @@ abstract class ResizeFrameView extends FrameLayout {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         if (!mShouldDrawFrame) {
             return;
         }

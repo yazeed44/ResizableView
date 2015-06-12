@@ -18,20 +18,18 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     public static final String TAG = ResizableViewLayout.class.getSimpleName();
     private final ArrayList<Integer> mThirtyMultiples = new ArrayList<>();
-    private float mScaleXFactor = 1.0f;
-    private float mScaleYFactor = 1.0f;
+
     private float mMaxScaleFactor = 3;
     private AspectRatio mChosenAspectRatio;
     private int xDelta;
     private int yDelta;
-    private PointF mPushPoint;
+    private PointF mRotatePoint;
     private double mLastComAngle;
     private Point mViewCenter;
     private double mLastImgAngle;
     private LayoutParams mRotateLayoutParams;
     private float mLastX = -1;
     private float mLastY = -1;
-
 
 
     public ResizableViewLayout(Context context) {
@@ -54,14 +52,14 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private void init() {
 
-        generateThirtyMultiples();
+        //generateThirtyMultiples();
 
     }
 
     private void generateThirtyMultiples() {
 
         for (int i = -360; i >= -360 && i <= 360; i++) {
-            if (i % 10 == 0) {
+            if (i % 5 == 0) {
                 mThirtyMultiples.add(i);
             }
 
@@ -95,16 +93,27 @@ public class ResizableViewLayout extends ResizeFrameView {
     }
 
     private void drag0(final MotionEvent shapeEvent) {
-
-
         final int[] xy = new int[2];
         getLocationOnScreen(xy);
 
-        float newWidth = (getWidth() * mScaleXFactor) + (xy[0] - shapeEvent.getRawX());
+
+        final float newWidth = (float) ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
 
         resize(newWidth, getHeightWithScale());
 
 
+    }
+
+    private Point getAnglePoint(Point O, PointF A, float angle) {
+        int x, y;
+        float dOA = getDistance(O, A);
+        double p1 = angle * Math.PI / 180f;
+        double p2 = Math.acos((A.x - O.x) / dOA);
+        x = (int) (O.x + dOA * Math.cos(p1 + p2));
+
+        double p3 = Math.acos((A.x - O.x) / dOA);
+        y = (int) (O.y + dOA * Math.sin(p1 + p3));
+        return new Point(x, y);
     }
 
 
@@ -115,7 +124,7 @@ public class ResizableViewLayout extends ResizeFrameView {
         getLocationOnScreen(xy);
 
 
-        final float newWidth = shapeEvent.getRawX() - xy[0];
+        final float newWidth = getWidthWithScale() + (shapeEvent.getRawX() - xy[0]);
 
 
         resize(newWidth, getHeightWithScale());
@@ -128,7 +137,7 @@ public class ResizableViewLayout extends ResizeFrameView {
         getLocationOnScreen(xy);
 
 
-        final float newHeight = (getHeight() * mScaleYFactor) + (xy[1] - shapeEvent.getRawY());
+        final float newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
 
         resize(getWidthWithScale(), newHeight);
     }
@@ -156,15 +165,12 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         final Point newDimension = mChosenAspectRatio.calculateDimension(getWidthWithScale(), getHeightWithScale(), Math.round(newWidth), Math.round(newHeight));
         Log.d(TAG, "New dimension    " + newDimension);
-        final int width = newDimension.x;
-        final int height = newDimension.y;
+        final float width = newDimension.x;
+        final float height = newDimension.y;
 
         mScaleXFactor = (width / (float) getWidth());
         mScaleYFactor = (height / (float) getHeight());
 
-
-        setPivotX(getWidth() / 2);
-        setPivotY(getHeight() / 2);
         setScaleX(mScaleXFactor);
         setScaleY(mScaleYFactor);
 
@@ -180,11 +186,12 @@ public class ResizableViewLayout extends ResizeFrameView {
                 //Touch listener for resize shapes
                 final int eventAction = motionEvent.getAction();
 
+
                 switch (eventAction) {
 
                     case MotionEvent.ACTION_DOWN: {
                         //First touch
-                        assignShapeId(v);
+
                         break;
                     }
 
@@ -192,9 +199,8 @@ public class ResizableViewLayout extends ResizeFrameView {
                     case MotionEvent.ACTION_MOVE: {
                         //Moving the finger on screen
 
-
+                        assignShapeId(v);
                         onDraggingShape(motionEvent);
-
                         break;
                     }
 
@@ -202,6 +208,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                     case MotionEvent.ACTION_UP: {
                         //Finger off the screen
                         mShapeId = -1;
+
 
                         break;
                     }
@@ -222,9 +229,11 @@ public class ResizableViewLayout extends ResizeFrameView {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
+                //TODO Add scale gesture
+                //TODO Add rotate gesture
 
-                final int x = (int) event.getRawX();
-                final int y = (int) event.getRawY();
+                final int x = Math.round(event.getRawX());
+                final int y = Math.round(event.getRawY());
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         FrameLayout.LayoutParams lParams = (FrameLayout.LayoutParams) getLayoutParams();
@@ -290,9 +299,9 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     @Override
     public void setRotation(float rotation) {
-        final float calculatedRotation = Math.round(rotation);
         super.setRotation(rotation);
-        Log.d(TAG, "New rotation  " + calculatedRotation);
+        Log.d(TAG, "New mRotation  " + rotation);
+
     }
 
     private float roundUpToClosetThirtyMultiplier(final float rotation) {
@@ -331,6 +340,10 @@ public class ResizableViewLayout extends ResizeFrameView {
                     drag2(event);
                     drag3(event);
                 }
+
+                /*else if (event.getAction() == MotionEvent.ACTION_DOWN){
+                    setRotation(getRotation() + 90);
+                }*/
                 return true;
             }
         };
@@ -348,7 +361,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                     case MotionEvent.ACTION_DOWN:
 
                         mRotateLayoutParams = (LayoutParams) mRotateView.getLayoutParams();
-                        mPushPoint = getPushPoint(mRotateLayoutParams, event);
+                        mRotatePoint = new PointF(event.getRawX(), event.getRawY());
                         mLastX = event.getRawX();
                         mLastY = event.getRawY();
                         mLastImgAngle = getRotation();
@@ -367,7 +380,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                         mLastY = rawY;
 
                         Point O = mViewCenter;
-                        PointF A = mPushPoint, B = getPushPoint(mRotateLayoutParams, event);
+                        PointF A = mRotatePoint, B = new PointF(event.getRawX(), event.getRawY());
                         float dOA = getDistance(O, A);
                         float dOB = getDistance(O, B);
                         float f = dOB / dOA;
@@ -384,7 +397,9 @@ public class ResizableViewLayout extends ResizeFrameView {
 
                         float angle = (float) (mLastImgAngle + comAngle);
                         angle = angle % 360;
-                        setRotation(angle);
+                        mRotation = angle;
+                        invalidate();
+
 
                         break;
 
@@ -402,18 +417,10 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     private void refreshImageCenter() {
 
-        final int[] xy = new int[2];
-        getLocationOnScreen(xy);
-
-        int x = xy[0] + getWidth() / 2;
-        int y = xy[1] + getHeight() / 2;
+        int x = getLeft() + getWidth() / 2;
+        int y = getTop() + getHeight() / 2;
 
         mViewCenter = new Point(x, y);
-    }
-
-
-    private PointF getPushPoint(FrameLayout.LayoutParams lp, MotionEvent event) {
-        return new PointF(event.getRawX(), event.getRawY());
     }
 
     private float getDistance(Point a, PointF b) {
@@ -426,7 +433,7 @@ public class ResizableViewLayout extends ResizeFrameView {
         mChosenAspectRatio = newAspectRatio;
 
         if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
-            resize(getWidthWithScale(), getHeightWithScale());
+            resize(getWidthWithScale() + 10, getHeightWithScale() + 10);
     }
 
 
