@@ -153,11 +153,14 @@ abstract class ResizeFrameView extends FrameLayout {
         final int width = mResizeShapeBitmap.getWidth(), height = mResizeShapeBitmap.getHeight();
 
 
-        for (final int position : positions) {
+        for (int i=0;i<positions.length;i++) {
+            int position = positions[i];
             final LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.gravity = position;
 
             final ResizeShapeView resizeShapeView = new ResizeShapeView(getContext());
+            resizeShapeView.setShapeId(i);
+
             resizeShapeView.setImageBitmap(mResizeShapeBitmap);
             resizeShapeView.setOnTouchListener(createShapesListener());
             resizeShapeView.setFocusable(true);

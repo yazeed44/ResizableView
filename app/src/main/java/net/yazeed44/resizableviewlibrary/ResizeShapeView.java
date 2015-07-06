@@ -9,24 +9,17 @@ import android.widget.ImageView;
  */
 class ResizeShapeView extends ImageView {
 
-    public static int sCount = 0;
     private int shapeId;
 
     public ResizeShapeView(final Context context) {
         super(context);
-        initId();
 
     }
 
 
-    private void initId() {
-        if (sCount > 4) {
-            sCount = 0;
-        }
-
-
-        this.shapeId = sCount++;
-    }
+   public void setShapeId(int id) {
+       this.shapeId = id;
+   }
 
 
     public int getShapeId() {
