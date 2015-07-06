@@ -42,7 +42,7 @@ public class AspectRatioRecyclerView extends RecyclerView {
 
     private void init() {
 
-        mAspectRatios = ResizeUtil.getResizeFactors(getContext());
+        mAspectRatios = ResizeUtil.getDefaultAspectRatios(getContext());
         mChosenAspectRatio = mAspectRatios.get(0);
 
         final GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 1);
@@ -64,6 +64,14 @@ public class AspectRatioRecyclerView extends RecyclerView {
         mResizeLayout = resizeLayout;
         mResizeLayout.setAspectRatio(mChosenAspectRatio);
 
+    }
+
+    public ArrayList<AspectRatio> getAspectRatioList() {
+        return mAspectRatios;
+    }
+
+    public void setAspectRatioList(final ArrayList<AspectRatio> aspectRatioList) {
+        mAspectRatios = aspectRatioList;
     }
 
     private interface onClickAspectRatio {
@@ -140,19 +148,16 @@ public class AspectRatioRecyclerView extends RecyclerView {
         private LinearLayout mLayout;
         private TextView mText;
 
-        private onClickAspectRatio mListener;
-
         public AspectRatioViewHolder(View itemView, final onClickAspectRatio listener) {
             super(itemView);
 
             mText = (TextView) itemView.findViewById(R.id.aspect_ratio_text);
             mLayout = (LinearLayout) itemView.findViewById(R.id.aspect_ratio_layout);
-            mListener = listener;
 
             mLayout.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.onClickAspectRatio(v);
+                    listener.onClickAspectRatio(v);
                 }
             });
         }

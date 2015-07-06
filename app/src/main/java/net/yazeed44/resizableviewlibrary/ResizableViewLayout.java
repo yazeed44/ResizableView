@@ -9,25 +9,22 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import java.util.ArrayList;
-
 /**
  * Created by yazeed44 on 10/11/14.
  */
 public class ResizableViewLayout extends ResizeFrameView {
 
     public static final String TAG = ResizableViewLayout.class.getSimpleName();
-    private final ArrayList<Integer> mThirtyMultiples = new ArrayList<>();
+    public static final float DEFAULT_MAX_SCALE_FACTOR = 1000;//Like no limit
 
-    private float mMaxScaleFactor = 3;
-    private AspectRatio mChosenAspectRatio;
+    private float mMaxScaleFactor = DEFAULT_MAX_SCALE_FACTOR;
+    private AspectRatio mCurrentAspectRatio;
     private int xDelta;
     private int yDelta;
     private PointF mRotatePoint;
     private double mLastComAngle;
     private Point mViewCenter;
     private double mLastImgAngle;
-    private LayoutParams mRotateLayoutParams;
     private float mLastX = -1;
     private float mLastY = -1;
 
@@ -47,132 +44,6 @@ public class ResizableViewLayout extends ResizeFrameView {
     @Override
     public void setResizableView(View resizableView) {
         super.setResizableView(resizableView);
-        init();
-    }
-
-    private void init() {
-
-        //generateThirtyMultiples();
-
-    }
-
-    private void generateThirtyMultiples() {
-
-        for (int i = -360; i >= -360 && i <= 360; i++) {
-            if (i % 5 == 0) {
-                mThirtyMultiples.add(i);
-            }
-
-        }
-    }
-
-    private void onDraggingShape(final MotionEvent shapeMotionEvent) {
-        switch (mShapeId) {
-
-            case 0:
-                drag0(shapeMotionEvent);
-                break;
-
-            case 1:
-                drag1(shapeMotionEvent);
-                break;
-
-            case 2:
-                drag2(shapeMotionEvent);
-                break;
-
-            case 3:
-                drag3(shapeMotionEvent);
-                break;
-
-            default:
-                throw new IllegalStateException("Shape Id is  -1 !!");
-        }
-
-
-    }
-
-    private void drag0(final MotionEvent shapeEvent) {
-        final int[] xy = new int[2];
-        getLocationOnScreen(xy);
-
-
-        final float newWidth = (float) ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
-
-        resize(newWidth, getHeightWithScale());
-
-
-    }
-
-    private Point getAnglePoint(Point O, PointF A, float angle) {
-        int x, y;
-        float dOA = getDistance(O, A);
-        double p1 = angle * Math.PI / 180f;
-        double p2 = Math.acos((A.x - O.x) / dOA);
-        x = (int) (O.x + dOA * Math.cos(p1 + p2));
-
-        double p3 = Math.acos((A.x - O.x) / dOA);
-        y = (int) (O.y + dOA * Math.sin(p1 + p3));
-        return new Point(x, y);
-    }
-
-
-    private void drag2(final MotionEvent shapeEvent) {
-
-
-        final int[] xy = new int[2];
-        getLocationOnScreen(xy);
-
-
-        final float newWidth = getWidthWithScale() + (shapeEvent.getRawX() - xy[0]);
-
-
-        resize(newWidth, getHeightWithScale());
-    }
-
-
-    private void drag1(final MotionEvent shapeEvent) {
-
-        final int[] xy = new int[2];
-        getLocationOnScreen(xy);
-
-
-        final float newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
-
-        resize(getWidthWithScale(), newHeight);
-    }
-
-
-
-    private void drag3(final MotionEvent shapeEvent) {
-
-        final int[] xy = new int[2];
-        getLocationOnScreen(xy);
-
-        final float newHeight = shapeEvent.getRawY() - xy[1];
-
-        resize(getWidthWithScale(), newHeight);
-
-
-    }
-
-    private void assignShapeId(final View view) {
-        mShapeId = ((ResizeShapeView) view).getShapeId();
-
-    }
-
-    private void resize(final float newWidth, final float newHeight) {
-
-        final Point newDimension = mChosenAspectRatio.calculateDimension(getWidthWithScale(), getHeightWithScale(), Math.round(newWidth), Math.round(newHeight));
-        Log.d(TAG, "New dimension    " + newDimension);
-        final float width = newDimension.x;
-        final float height = newDimension.y;
-
-        mScaleXFactor = (width / (float) getWidth());
-        mScaleYFactor = (height / (float) getHeight());
-
-        setScaleX(mScaleXFactor);
-        setScaleY(mScaleYFactor);
 
     }
 
@@ -200,7 +71,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                         //Moving the finger on screen
 
                         assignShapeId(v);
-                        onDraggingShape(motionEvent);
+                        onDraggingResizeShape(motionEvent);
                         break;
                     }
 
@@ -242,6 +113,7 @@ public class ResizableViewLayout extends ResizeFrameView {
                         break;
 
                     case MotionEvent.ACTION_MOVE:
+                        //Drag the layout in the screen
                         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
                         layoutParams.leftMargin = x - xDelta;
                         layoutParams.topMargin = y - yDelta;
@@ -263,11 +135,13 @@ public class ResizableViewLayout extends ResizeFrameView {
     public void setScaleX(float scaleX) {
 
         if (scaleX < -mMaxScaleFactor) {
+            //If the current scale factor is smaller than the negative max , equalize current with negative max
             mScaleXFactor = -mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
             Log.d(TAG, "New scale x   " + mScaleXFactor);
             return;
         } else if (mScaleXFactor > mMaxScaleFactor) {
+            //If the current scale factor is bigger than the max , equalize current with max
             mScaleXFactor = mMaxScaleFactor;
             super.setScaleX(mScaleXFactor);
             Log.d(TAG, "New scale x   " + mScaleXFactor);
@@ -282,11 +156,13 @@ public class ResizableViewLayout extends ResizeFrameView {
     public void setScaleY(float scaleY) {
 
         if (mScaleYFactor < -mMaxScaleFactor) {
+            //If the current scale factor is smaller than the negative max , equalize current with negative max
             mScaleYFactor = -mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
             Log.d(TAG, "New scale y   " + mScaleYFactor);
             return;
         } else if (mScaleYFactor > mMaxScaleFactor) {
+            //If the current scale factor is bigger than the max , equalize current with max
             mScaleYFactor = mMaxScaleFactor;
             super.setScaleY(mScaleYFactor);
             Log.d(TAG, "New scale y   " + mScaleYFactor);
@@ -304,32 +180,6 @@ public class ResizableViewLayout extends ResizeFrameView {
 
     }
 
-    private float roundUpToClosetThirtyMultiplier(final float rotation) {
-        float lowestDiff = Float.MAX_VALUE;
-        float result = 0;
-        for (final int i : mThirtyMultiples) {
-            float diff = Math.abs(rotation - i); // use API to get absolute diff
-            if (diff < lowestDiff) {
-                lowestDiff = diff;
-                result = i;
-            }
-        }
-        return result;
-
-    }
-
-    public void setMaxScaleFactor(final float scaleFactor) {
-        mMaxScaleFactor = scaleFactor;
-    }
-
-    public int getWidthWithScale() {
-        return Math.round(getWidth() * mScaleXFactor);
-    }
-
-    public int getHeightWithScale() {
-        return Math.round(getHeight() * mScaleYFactor);
-    }
-
     @Override
     public OnTouchListener createStretchListener() {
         return new OnTouchListener() {
@@ -337,13 +187,11 @@ public class ResizableViewLayout extends ResizeFrameView {
             public boolean onTouch(View v, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    drag2(event);
-                    drag3(event);
+                    dragResizeShapeNumber2(event);
+                    dragResizeShapeNumber3(event);
                 }
 
-                /*else if (event.getAction() == MotionEvent.ACTION_DOWN){
-                    setRotation(getRotation() + 90);
-                }*/
+
                 return true;
             }
         };
@@ -360,12 +208,11 @@ public class ResizableViewLayout extends ResizeFrameView {
 
                     case MotionEvent.ACTION_DOWN:
 
-                        mRotateLayoutParams = (LayoutParams) mRotateView.getLayoutParams();
                         mRotatePoint = new PointF(event.getRawX(), event.getRawY());
                         mLastX = event.getRawX();
                         mLastY = event.getRawY();
                         mLastImgAngle = getRotation();
-                        refreshImageCenter();
+                        initializeViewCenter();
                         break;
 
                     case MotionEvent.ACTION_MOVE:
@@ -379,26 +226,26 @@ public class ResizableViewLayout extends ResizeFrameView {
                         mLastX = rawX;
                         mLastY = rawY;
 
-                        Point O = mViewCenter;
-                        PointF A = mRotatePoint, B = new PointF(event.getRawX(), event.getRawY());
-                        float dOA = getDistance(O, A);
-                        float dOB = getDistance(O, B);
-                        float f = dOB / dOA;
+                        //This code is taken from ryanch741
 
-                        float fz = (((A.x - O.x) * (B.x - O.x)) + ((A.y - O.y) * (B.y - O.y)));
-                        float fm = dOA * dOB;
+                        Point viewCenter = mViewCenter;
+                        PointF rotateViewPoint = mRotatePoint, touchPoint = new PointF(event.getRawX(), event.getRawY());
+                        float distanceBetweenViewCenterAndRotatePoint = ResizeUtil.getDistance(viewCenter, rotateViewPoint);
+                        float distanceBetweenCenterPointAndTouchPoint = ResizeUtil.getDistance(viewCenter, touchPoint);
+
+                        float fz = (((rotateViewPoint.x - viewCenter.x) * (touchPoint.x - viewCenter.x)) + ((rotateViewPoint.y - viewCenter.y) * (touchPoint.y - viewCenter.y)));
+                        float fm = distanceBetweenViewCenterAndRotatePoint * distanceBetweenCenterPointAndTouchPoint;
                         double comAngle = (180 * Math.acos(fz / fm) / Math.PI);
                         if (Double.isNaN(comAngle)) {
                             comAngle = (mLastComAngle < 90 || mLastComAngle > 270) ? 0 : 180;
-                        } else if ((B.y - O.y) * (A.x - O.x) < (A.y - O.y) * (B.x - O.x)) {
+                        } else if ((touchPoint.y - viewCenter.y) * (rotateViewPoint.x - viewCenter.x) < (rotateViewPoint.y - viewCenter.y) * (touchPoint.x - viewCenter.x)) {
                             comAngle = 360 - comAngle;
                         }
                         mLastComAngle = comAngle;
 
                         float angle = (float) (mLastImgAngle + comAngle);
                         angle = angle % 360;
-                        mRotation = angle;
-                        invalidate();
+                        setRotation(angle);
 
 
                         break;
@@ -414,26 +261,129 @@ public class ResizableViewLayout extends ResizeFrameView {
         };
     }
 
+    public void setMaxScaleFactor(final float scaleFactor) {
+        mMaxScaleFactor = scaleFactor;
+    }
 
-    private void refreshImageCenter() {
+    public int getWidthWithScale() {
+        return Math.round(getWidth() * mScaleXFactor);
+    }
+
+    public int getHeightWithScale() {
+        return Math.round(getHeight() * mScaleYFactor);
+    }
+
+    public void setAspectRatio(final AspectRatio newAspectRatio) {
+        mCurrentAspectRatio = newAspectRatio;
+
+        if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
+            scaleLayout(getWidthWithScale() + 10, getHeightWithScale() + 10);
+    }
+
+    private void onDraggingResizeShape(final MotionEvent shapeMotionEvent) {
+        switch (mShapeId) {
+
+            case 0:
+                dragResizeShapeNumber0(shapeMotionEvent);
+                break;
+
+            case 1:
+                dragResizeShapeNumber1(shapeMotionEvent);
+                break;
+
+            case 2:
+                dragResizeShapeNumber2(shapeMotionEvent);
+                break;
+
+            case 3:
+                dragResizeShapeNumber3(shapeMotionEvent);
+                break;
+
+            default:
+                throw new IllegalStateException("Shape Id is  -1 !!");
+        }
+
+
+    }
+
+    //The shape in left | center of the view
+    private void dragResizeShapeNumber0(final MotionEvent shapeEvent) {
+        final int[] xy = new int[2];
+        mResizeShapes.get(0).getLocationOnScreen(xy);
+
+
+        final float newWidth = (float) ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
+
+        scaleLayout(newWidth, getHeightWithScale());
+
+
+    }
+
+
+    //The shape in right|center of the view
+    private void dragResizeShapeNumber2(final MotionEvent shapeEvent) {
+
+        final int[] xy = new int[2];
+        mResizeShapes.get(2).getLocationOnScreen(xy);
+
+        final float newWidth = (getWidthWithScale() + (shapeEvent.getRawX()) - xy[0]);
+        scaleLayout(newWidth, getHeightWithScale());
+
+    }
+
+
+    //The shape in top | center of the view
+    private void dragResizeShapeNumber1(final MotionEvent shapeEvent) {
+
+        final int[] xy = new int[2];
+        mResizeShapes.get(1).getLocationOnScreen(xy);
+
+
+        final float newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
+
+        scaleLayout(getWidthWithScale(), newHeight);
+    }
+
+
+    //The shape in bottom | center of the view
+    private void dragResizeShapeNumber3(final MotionEvent shapeEvent) {
+
+        final int[] xy = new int[2];
+        mResizeShapes.get(3).getLocationOnScreen(xy);
+
+        final float newHeight = getHeightWithScale() + (shapeEvent.getRawY() - xy[1]);
+
+        scaleLayout(getWidthWithScale(), newHeight);
+
+
+    }
+
+    private void assignShapeId(final View view) {
+        mShapeId = ((ResizeShapeView) view).getShapeId();
+
+    }
+
+    private void scaleLayout(final float newWidth, final float newHeight) {
+
+        final Point newDimension = mCurrentAspectRatio.calculateDimension(getWidthWithScale(), getHeightWithScale(), Math.round(newWidth), Math.round(newHeight));
+        Log.d(TAG, "New dimension    " + newDimension);
+        final float width = newDimension.x;
+        final float height = newDimension.y;
+
+        mScaleXFactor = (width / (float) getWidth());
+        mScaleYFactor = (height / (float) getHeight());
+
+        setScaleX(mScaleXFactor);
+        setScaleY(mScaleYFactor);
+
+    }
+
+    private void initializeViewCenter() {
 
         int x = getLeft() + getWidth() / 2;
         int y = getTop() + getHeight() / 2;
 
         mViewCenter = new Point(x, y);
-    }
-
-    private float getDistance(Point a, PointF b) {
-        float v = ((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y));
-        return (float) (((Math.sqrt(v))));
-    }
-
-
-    public void setAspectRatio(final AspectRatio newAspectRatio) {
-        mChosenAspectRatio = newAspectRatio;
-
-        if (getWidthWithScale() != 0 && getHeightWithScale() != 0)
-            resize(getWidthWithScale() + 10, getHeightWithScale() + 10);
     }
 
 
