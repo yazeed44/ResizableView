@@ -312,7 +312,26 @@ public class ResizableViewLayout extends ResizeFrameView {
         mResizeShapes.get(0).getLocationOnScreen(xy);
 
 
-        final float newWidth = (float) ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
+        float newWidth;
+
+        if(getRotation() > 270) {
+
+            newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawY() - xy[1]));
+
+        }
+        else if(getRotation() > 180) {
+            newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawX() - xy[0]));
+
+        }
+        else if(getRotation() > 90) {
+
+            newWidth = ((getWidthWithScale()) + (xy[1] - shapeEvent.getRawY()));
+        }
+        else  {
+            newWidth = ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
+
+        }
+
 
         scaleLayout(newWidth, getHeightWithScale());
 
@@ -326,7 +345,27 @@ public class ResizableViewLayout extends ResizeFrameView {
         final int[] xy = new int[2];
         mResizeShapes.get(2).getLocationOnScreen(xy);
 
-        final float newWidth = (getWidthWithScale() + (shapeEvent.getRawX()) - xy[0]);
+        float newWidth;
+
+
+        if(getRotation() > 270) {
+
+            newWidth = ((getWidthWithScale()) + (xy[1] - shapeEvent.getRawY()));
+
+        }
+        else if(getRotation() > 180) {
+            newWidth = ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
+
+        }
+        else if(getRotation() > 90) {
+
+            newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawY() - xy[1]));
+        }
+        else  {
+            newWidth = (getWidthWithScale() + (shapeEvent.getRawX()) - xy[0]);
+
+        }
+
         scaleLayout(newWidth, getHeightWithScale());
 
     }
@@ -338,8 +377,27 @@ public class ResizableViewLayout extends ResizeFrameView {
         final int[] xy = new int[2];
         mResizeShapes.get(1).getLocationOnScreen(xy);
 
+        float newHeight;
 
-        final float newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
+
+        if(getRotation() > 270) {
+
+            newHeight = (getHeightWithScale() + (xy[0] - shapeEvent.getRawX()) );
+
+        }
+        else if(getRotation() > 180) {
+            newHeight = (getHeightWithScale()) + ( shapeEvent.getRawY() - xy[1]);
+
+        }
+        else if(getRotation() > 90) {
+
+            newHeight = (getHeightWithScale() + (shapeEvent.getRawX()) - xy[0]);
+        }
+        else  {
+            newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
+
+        }
+
 
         scaleLayout(getWidthWithScale(), newHeight);
     }
@@ -351,12 +409,34 @@ public class ResizableViewLayout extends ResizeFrameView {
         final int[] xy = new int[2];
         mResizeShapes.get(3).getLocationOnScreen(xy);
 
-        final float newHeight = getHeightWithScale() + (shapeEvent.getRawY() - xy[1]);
+        float newHeight;
+
+        if(getRotation() > 270) {
+
+            newHeight = ((getHeightWithScale()) + ( shapeEvent.getRawX() - xy[0]));
+
+        }
+        else if(getRotation() > 180) {
+            newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
+
+        }
+        else if(getRotation() > 90) {
+
+            newHeight = ((getHeightWithScale()) + (xy[0] - shapeEvent.getRawX()));
+        }
+        else  {
+            newHeight = getHeightWithScale() + (shapeEvent.getRawY() - xy[1]);
+
+        }
+
+
 
         scaleLayout(getWidthWithScale(), newHeight);
 
 
     }
+
+
 
     private void assignShapeId(final View view) {
         mShapeId = ((ResizeShapeView) view).getShapeId();
