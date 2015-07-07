@@ -187,8 +187,7 @@ public class ResizableViewLayout extends ResizeFrameView {
             public boolean onTouch(View v, MotionEvent event) {
 
                 if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    dragResizeShapeNumber2(event);
-                    dragResizeShapeNumber3(event);
+                    dragResizeForStretch(event);
                 }
 
 
@@ -314,16 +313,18 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         float newWidth;
 
-        if(getRotation() > 270) {
+        float rotation = getRotation();
+
+        if(rotation > 225 && rotation <=315) {
 
             newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawY() - xy[1]));
 
         }
-        else if(getRotation() > 180) {
+        else if(rotation > 135 && rotation <=225) {
             newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawX() - xy[0]));
 
         }
-        else if(getRotation() > 90) {
+        else if(rotation > 45 && rotation <=135) {
 
             newWidth = ((getWidthWithScale()) + (xy[1] - shapeEvent.getRawY()));
         }
@@ -347,21 +348,19 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         float newWidth;
 
+        float rotation = getRotation();
 
-        if(getRotation() > 270) {
+        if (rotation > 225 && rotation <= 315) {
 
             newWidth = ((getWidthWithScale()) + (xy[1] - shapeEvent.getRawY()));
 
-        }
-        else if(getRotation() > 180) {
+        } else if (rotation > 135 && rotation <= 225) {
             newWidth = ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
 
-        }
-        else if(getRotation() > 90) {
+        } else if (rotation > 45 && rotation <= 135) {
 
-            newWidth = ((getWidthWithScale()) + ( shapeEvent.getRawY() - xy[1]));
-        }
-        else  {
+            newWidth = ((getWidthWithScale()) + (shapeEvent.getRawY() - xy[1]));
+        } else {
             newWidth = (getWidthWithScale() + (shapeEvent.getRawX()) - xy[0]);
 
         }
@@ -379,21 +378,19 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         float newHeight;
 
+        float rotation = getRotation();
 
-        if(getRotation() > 270) {
+        if (rotation > 225 && rotation <= 315) {
 
-            newHeight = (getHeightWithScale() + (xy[0] - shapeEvent.getRawX()) );
+            newHeight = (getHeightWithScale() + (xy[0] - shapeEvent.getRawX()));
 
-        }
-        else if(getRotation() > 180) {
-            newHeight = (getHeightWithScale()) + ( shapeEvent.getRawY() - xy[1]);
+        } else if (rotation > 135 && rotation <= 225) {
+            newHeight = (getHeightWithScale()) + (shapeEvent.getRawY() - xy[1]);
 
-        }
-        else if(getRotation() > 90) {
+        } else if (rotation > 45 && rotation <= 135) {
 
             newHeight = (getHeightWithScale() + (shapeEvent.getRawX()) - xy[0]);
-        }
-        else  {
+        } else {
             newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
 
         }
@@ -411,20 +408,19 @@ public class ResizableViewLayout extends ResizeFrameView {
 
         float newHeight;
 
-        if(getRotation() > 270) {
+        float rotation = getRotation();
 
-            newHeight = ((getHeightWithScale()) + ( shapeEvent.getRawX() - xy[0]));
+        if (rotation > 225 && rotation <= 315) {
 
-        }
-        else if(getRotation() > 180) {
+            newHeight = ((getHeightWithScale()) + (shapeEvent.getRawX() - xy[0]));
+
+        } else if (rotation > 135 && rotation <= 225) {
             newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
 
-        }
-        else if(getRotation() > 90) {
+        } else if (rotation > 45 && rotation <= 135) {
 
             newHeight = ((getHeightWithScale()) + (xy[0] - shapeEvent.getRawX()));
-        }
-        else  {
+        } else {
             newHeight = getHeightWithScale() + (shapeEvent.getRawY() - xy[1]);
 
         }
@@ -434,6 +430,42 @@ public class ResizableViewLayout extends ResizeFrameView {
         scaleLayout(getWidthWithScale(), newHeight);
 
 
+    }
+
+    //The stretch shape in bottom | right of the view
+    private void dragResizeForStretch(final MotionEvent shapeEvent) {
+
+        final int[] xy = new int[2];
+
+        mStretchView.getLocationOnScreen(xy);
+
+        float newHeight;
+        float newWidth;
+
+        float rotation = getRotation();
+
+
+        if (rotation > 225 && rotation <= 315) {
+
+            newHeight = ((getHeightWithScale()) + (shapeEvent.getRawX() - xy[0]));
+            newWidth = ((getWidthWithScale()) + (xy[1] - shapeEvent.getRawY()));
+
+        } else if (rotation > 135 && rotation <= 225) {
+            newHeight = (getHeightWithScale()) + (xy[1] - shapeEvent.getRawY());
+            newWidth = ((getWidthWithScale()) + (xy[0] - shapeEvent.getRawX()));
+
+        } else if (rotation > 45 && rotation <= 135) {
+
+            newHeight = ((getHeightWithScale()) + (xy[0] - shapeEvent.getRawX()));
+            newWidth = ((getWidthWithScale()) + (shapeEvent.getRawY() - xy[1]));
+
+        } else {
+            newHeight = getHeightWithScale() + (shapeEvent.getRawY() - xy[1]);
+            newWidth = (getWidthWithScale() + (shapeEvent.getRawX()) - xy[0]);
+
+        }
+
+        scaleLayout(newWidth, newHeight);
     }
 
 
